@@ -642,14 +642,34 @@
     void cover.offsetWidth;
     cover.classList.add('is-entering');
   }
+  // 결과 화면만 보기: 셔플 없이 멈춘 카드에서 바로 공개
+  function showResult() {
+    reset();
+    build();
+    cover.classList.add('is-hidden');
+    setX(offsetFor(TARGET));
+    const cards = track.children;
+    cards[TARGET - 1].classList.add('is-prev');
+    cards[TARGET + 1].classList.add('is-next');
+    cards[TARGET].classList.add('is-active');
+    later(() => reveal(cards[TARGET]), 300);
+  }
+
+  // 페이지 종류: <html data-page="flow | cover | result">
+  //  flow   — 표지 → 셔플 → 결과 (index.html)
+  //  cover  — 표지만 (cover.html). 「펼쳐보기」는 전체 흐름으로 이동
+  //  result — 결과 공개만 (result.html)
+  const PAGE = document.documentElement.dataset.page || 'flow';
   $('cover-open').addEventListener('click', () => {
     navigator.vibrate?.(10);
     cover.classList.add('is-leaving');
+    if (PAGE === 'cover') { setTimeout(() => { location.href = 'index.html'; }, 450); return; }
     play();                                    // 표지가 걷히는 동안 셔플 시작
     setTimeout(() => cover.classList.add('is-hidden'), 450);
   });
-  $('replay').addEventListener('click', showCover);
-  showCover();
+  const start = PAGE === 'result' ? showResult : showCover;
+  $('replay').addEventListener('click', start);
+  start();
 </script>
 </body>
 </html>
