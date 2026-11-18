@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="ko" data-page="time">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>월간리포트 — 주요 공부 시간</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --white: #ffffff;
+    --gray-100: #171717;
+    --gray-200: #333333;
+    --gray-300: #555555;
+    --gray-600: #dfdfdf;
+    --gray-700: #ececec;
+    --gray-800: #f4f4f4;
+    --gray-900: #fbfbfb;
+    --text-strong: #1e1e1e;
+    --primary: #ff8a00;
+
+    --card-w: 272px;
+    --card-h: 431px;
+    --active-w: 296px;
+    --active-h: 466px;
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    background: #e6e4e0;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 24px 0;
+  }
+
+  /* ---------- Screen (375 × 812) ---------- */
+  .screen {
+    position: relative; width: 375px; height: 812px; overflow: hidden;
+    background: var(--bg); border-radius: 44px; isolation: isolate;
+  }
+  .screen > * { position: absolute; }
+
+  /* 공개 배경: #FFC422 → white (58%) + 스포트라이트 */
+  .bg-reveal {
+    inset: 0; z-index: -2;
+    background: linear-gradient(to bottom, #ffc422 0%, #ffffff 58.005%);
+    opacity: 0; transition: opacity .6s ease-out;
+  }
+  .spotlight {
+    z-index: -1; top: -121px; left: 50%; width: 605px; height: 605px;
+    transform: translateX(-50%); transform-origin: 50% 0;
+    opacity: 0; pointer-events: none;
+  }
+  .spotlight img { position: absolute; top: 0; left: 6.7%; }
+  .flash { inset: 0; z-index: 5; background: #fff; opacity: 0; pointer-events: none; }
+
+  .status-bar {
+    top: 0; left: 0; width: 375px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 30px 0 50px;
+  }
+  .status-bar__time { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: var(--gray-200); }
+
+
+  .header {
+    top: 62px; left: 0; width: 375px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px 0 20px;
+  }
+  .header__title {
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: var(--gray-100);
+    transition: color .5s;
+  }
+  .header__close {
+    position: relative; width: 40px; height: 40px; border: 0; background: none; border-radius: 20px; padding: 0;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .header__close img { grid-area: 1 / 1; transition: opacity .5s; }
+  .header__close .is-light { opacity: 0; }
+  .is-revealed .header__title { color: var(--white); }
+  .is-revealed .header__close .is-dark { opacity: 0; }
+  .is-revealed .header__close .is-light { opacity: 1; }
+
+  .title {
+    top: 129px; left: 187px; transform: translateX(-50%);
+    font-weight: 700; font-size: 20px; line-height: 28px; letter-spacing: -0.2px;
+    color: var(--text-strong); text-align: center; white-space: nowrap;
+  }
+
+  .caption {
+    top: 717px; left: 187.5px; transform: translateX(-50%);
+    font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px;
+    color: var(--text-strong); white-space: nowrap; transition: opacity .25s;
+  }
+  .is-revealed .caption { opacity: 0; }
+
+  /* CTA: 하단 버튼 + 홈 인디케이터 */
+  .cta {
+    bottom: 0; left: 0; width: 375px; padding: 12px 20px 0;
+    display: flex; flex-direction: column; align-items: center; gap: 32px;
+  }
+  .cta__button {
+    width: 100%; height: 56px; border: 0; border-radius: 12px; padding: 14px 64px;
+    background: var(--primary); color: var(--gray-900); cursor: pointer;
+    font: 700 16px/22px "Pretendard", sans-serif; letter-spacing: -0.2px;
+    opacity: 0; transform: translateY(24px); pointer-events: none;
+  }
+  .cta__home { position: relative; width: 100%; height: 21px; }
+  .cta__home::after {
+    content: ""; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 139px; height: 5px; border-radius: 100px; background: #000;
+  }
+
+  /* ---------- Card carousel ---------- */
+  .stage { top: 184px; left: 0; width: 375px; height: var(--active-h); }
+  .track { position: absolute; top: 0; left: 0; height: 100%; will-change: transform; }
+
+  .card {
+    position: absolute; top: calc((var(--active-h) - var(--card-h)) / 2);
+    width: var(--card-w); height: var(--card-h);
+    background: var(--gray-900); border-radius: 19px;
+    overflow: hidden;
+    transition:
+      top .5s var(--ease-pop), width .5s var(--ease-pop), height .5s var(--ease-pop),
+      margin .5s var(--ease-pop), border-radius .5s var(--ease-pop),
+      transform .5s var(--ease-pop), opacity .4s;
+  }
+  /* 스트로크는 내용 위에 덮는 레이어로 (Figma inside-stroke와 동일, 레이아웃 영향 없음) */
+  .card::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    border: 1px solid var(--gray-600); border-radius: inherit;
+    opacity: 0; transition: opacity .3s;
+  }
+  .card.is-active::after { opacity: 1; }
+  .is-revealed .card.is-active::after { opacity: 0; transition: none; }
+  .card.is-active {
+    top: 0; width: var(--active-w); height: var(--active-h);
+    margin-left: calc((var(--card-w) - var(--active-w)) / 2);
+    border-radius: 24px;
+  }
+  .card.is-prev { transform: translateX(calc((var(--card-w) - var(--active-w)) / 2)); }
+  .card.is-next { transform: translateX(calc((var(--active-w) - var(--card-w)) / 2)); }
+  .is-revealed .card:not(.is-active) { opacity: 0; }
+  /* 결과 카드는 내용 높이(439). 흰 배경이 둥근 모서리 가장자리로 비치지 않도록 투명 처리 */
+  .is-revealed .card.is-active { height: 439px; background: transparent; }
+
+  /* 카드 내용 296 × 466 */
+  .card__body {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 12px 12px;
+  }
+
+  /* 스켈레톤 (분석 중) */
+  /* 셔플 중에도 모든 카드에 스켈레톤 표시. 296×466 레이아웃을 272×431 카드에 맞춰 축소(≈0.919) → 안착하면 1 */
+  .card__body--skeleton {
+    justify-content: flex-end;
+    inset: auto; left: 50%; top: 50%; width: var(--active-w); height: var(--active-h);
+    transform: translate(-50%, -50%) scale(calc(272 / 296));
+    transition: transform .5s var(--ease-pop);
+  }
+  .card.is-active .card__body--skeleton { transform: translate(-50%, -50%) scale(1); }
+  .is-revealed .card__body--skeleton { opacity: 0; }
+  .skel-head { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .skel { background: var(--gray-800); border-radius: 4px; }
+  .skel--name { width: 66px; height: 25px; }
+  .skel--sub { width: 154px; height: 17px; }
+  .skel--label { width: 26px; height: 17px; }
+  .skel--value { width: 66px; height: 25px; }
+  .is-analyzing .skel, .is-analyzing .silhouette { animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .silhouette {
+    width: 210px; height: 210px; background: var(--gray-700);
+    -webkit-mask: url("assets/character.png") center / 210px 210px no-repeat;
+            mask: url("assets/character.png") center / 210px 210px no-repeat;
+  }
+
+  /* 결과 */
+  .card__body--result {
+    background: linear-gradient(162.74deg, #ffbf10 4.54%, #fff2cf 87.22%);
+    gap: 8px;
+    visibility: hidden;
+  }
+  .is-revealed .card__body--result { visibility: visible; }
+  .result-top { width: 210px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .result-head {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    letter-spacing: -0.2px; white-space: nowrap; text-align: center;
+  }
+  .result-name { font-weight: 700; font-size: 18px; line-height: 25px; color: var(--text-strong); }
+  .result-desc { font-weight: 400; font-size: 12px; line-height: 17px; color: var(--gray-200); }
+  /* 184 영역에 이미지를 131.25%로 확대 배치 (Figma 크롭 값 그대로) */
+  .result-char { width: 184px; height: 184px; position: relative; }
+  .result-char img {
+    position: absolute; left: -15.63%; top: -15.63%;
+    width: 131.25%; height: 131.25%; max-width: none; display: block;
+  }
+
+  .badge {
+    position: absolute; left: 12px; top: 20px;
+    padding: 2px 8px; border-radius: 100px; background: rgba(255, 255, 255, .2);
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: var(--white);
+    white-space: nowrap;
+  }
+
+  .rarity {
+    top: 647px; left: 186px; transform: translateX(-50%);
+    font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px;
+    color: var(--text-strong); white-space: nowrap; opacity: 0;
+  }
+  .rarity__num { color: var(--primary); font-variant-numeric: tabular-nums; } /* CTA 버튼과 동일한 #FF8A00 */
+  .result-char .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  .result-char .burst i {
+    position: absolute; width: 8px; height: 8px; margin: -4px; border-radius: 50%; opacity: 0;
+  }
+
+  .tiles { width: 100%; display: flex; flex-direction: column; gap: 8px; letter-spacing: -0.2px; white-space: nowrap; }
+  .tiles__row { display: flex; gap: 8px; }
+  .tile {
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .7);
+  }
+  .tile__label { font-weight: 400; font-size: 12px; line-height: 17px; color: var(--gray-300); }
+  .tile__value { font-weight: 700; font-size: 18px; line-height: 25px; color: var(--gray-100); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Outside the phone ---------- */
+  .replay {
+    font: 600 14px/20px "Pretendard", sans-serif; color: var(--gray-100);
+    padding: 10px 18px; border-radius: 999px; border: 1px solid #cfccc6; background: #fff; cursor: pointer;
+  }
+  body.is-embed { background: transparent; padding: 0; min-height: 0; }
+  body.is-embed .replay { display: none; }
+
+  /* ---------- 표지 (Figma 142:453) — 셔플 화면 위에 덮였다가 「펼쳐보기」로 걷힘 ---------- */
+  .cover { inset: 0; z-index: 50; background: #f7f5f2; overflow: hidden; transition: opacity .45s ease; }
+  .cover > * { position: absolute; }
+  .cover.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .cover.is-leaving { opacity: 0; pointer-events: none; }
+  .cover__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .cover__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #333; }
+  .cover__header { top: 62px; left: 0; width: 375px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .cover__header p { font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #333; }
+  .cover__close { width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+  .cover__titles { top: 124px; left: 0; width: 375px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; white-space: nowrap; }
+  .cover__to { font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #6d6257; }
+  .cover__title { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: -0.4px; color: #2a2520; }
+  .cover__title em { font-style: normal; color: #ff8a00; }
+  .cover__lede { font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #6d6257; }
+  .cover__card {
+    top: 238px; left: 68px; width: 240px; padding: 20px 12px; overflow: hidden;
+    background: #fff; border: 1px solid #dfdfdf; border-radius: 24px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .cover__silhouette {
+    width: 160px; height: 160px; background: #dfdfdf;
+    -webkit-mask: url("assets/cover-silhouette.png") center / 160px 160px no-repeat;
+            mask: url("assets/cover-silhouette.png") center / 160px 160px no-repeat;
+  }
+  .cover__caption { font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #6d6257; text-align: center; white-space: nowrap; }
+  .cover__chip { position: absolute; left: 11px; top: 19px; padding: 2px 8px; border-radius: 100px; background: #feefd1;
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #ff8a00; }
+  .cover__seal { left: 264.28px; top: 332.86px; width: 81.779px; height: 81.779px; display: grid; place-items: center; }
+  .cover__seal img { display: block; transform: rotate(15deg); filter: url(#cover-ink); mix-blend-mode: multiply; }
+  .cover__toc { top: 512px; left: 36px; width: 304px; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .cover__toc li { display: flex; align-items: center; gap: 16px; padding: 9px 0; border-bottom: 1px solid #dfdfdf;
+    font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #333; white-space: nowrap; }
+  .cover__toc li:last-child { padding: 8px 0; border-bottom: 0; }
+  .cover__toc .num { color: #ef523d; }
+  .cover__cta { left: 0; bottom: 0; width: 375px; padding: 12px 20px 0; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+  .cover__button { width: 100%; height: 56px; border: 0; border-radius: 12px; background: #ff8a00; color: #fbfbfb; cursor: pointer;
+    font: 700 16px/22px "Pretendard", sans-serif; letter-spacing: -0.2px; }
+  .cover__home { position: relative; width: 100%; height: 21px; }
+  .cover__home::after { content: ""; position: absolute; bottom: 8px; left: 50%; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 표지 등장 */
+  .cover.is-entering .cover__titles { animation: coverRise .5s cubic-bezier(.22,1,.36,1) .1s both; }
+  .cover.is-entering .cover__card { animation: coverCard .6s cubic-bezier(.34,1.56,.64,1) .25s both; }
+  .cover.is-entering .cover__toc li { animation: coverRise .45s cubic-bezier(.22,1,.36,1) both; }
+  .cover.is-entering .cover__toc li:nth-child(1) { animation-delay: .5s; }
+  .cover.is-entering .cover__toc li:nth-child(2) { animation-delay: .58s; }
+  .cover.is-entering .cover__toc li:nth-child(3) { animation-delay: .66s; }
+  .cover.is-entering .cover__toc li:nth-child(4) { animation-delay: .74s; }
+  .cover.is-entering .cover__seal { animation: coverStamp .42s cubic-bezier(.5,0,.75,0) 1.05s both; }
+  .cover.is-entering .cover__cta { animation: coverRise .5s cubic-bezier(.22,1,.36,1) 1.25s both; }
+  /* 「펼쳐보기」: 카드가 앞으로 나오며 셔플로 넘어감 */
+  .cover.is-leaving .cover__card { transition: transform .45s cubic-bezier(.22,1,.36,1); transform: translateY(-20px) scale(1.2); }
+  @keyframes coverRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes coverCard { from { opacity: 0; transform: translateY(24px) scale(.92); } to { opacity: 1; transform: none; } }
+  @keyframes coverStamp { 0% { opacity: 0; transform: scale(2.2) rotate(-25deg); } 60% { opacity: 1; transform: scale(.92) rotate(4deg); } 100% { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .cover, .cover * { animation: none !important; transition: none !important; } }
+
+  /* ---------- 주요 공부 시간 (Figma 229:1502 아침 · 229:7510 오후 · 231:1247 밤) — 표지 다음 장 ---------- */
+  .time { inset: 0; z-index: 40; overflow: hidden; cursor: pointer; transition: opacity .4s ease; }
+  .time > * { position: absolute; }
+  .time.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .time.is-leaving { opacity: 0; pointer-events: none; }
+  .time[data-time="morning"]   { background: linear-gradient(to bottom, #cae8fd 0%, #fff 58.005%); }
+  .time[data-time="afternoon"] { background: linear-gradient(to bottom, #fbeb97 0%, #fff 58.005%); }
+  .time[data-time="night"]     { background: linear-gradient(to bottom, #213f7a 0%, #fff 58.005%); }
+  .time [data-only]:not([data-only~="all"]) { display: none; }
+  .time[data-time="morning"]   [data-only~="morning"],
+  .time[data-time="afternoon"] [data-only~="afternoon"],
+  .time[data-time="night"]     [data-only~="night"] { display: block; }
+
+  /* 산 그림 — SVG 안쪽 여백(획 두께)만큼 바깥으로 */
+  .time__mtn img { position: absolute; display: block; max-width: none; }
+  .time__mtn--morning   { left: -37px; top: 182px; width: 484.17px; height: 227.92px; transform: scaleX(-1); }
+  .time__mtn--morning img   { top: -0.49%; left: -0.23%; width: 100.46%; height: 100.98%; }
+  .time__mtn--afternoon { left: -71px; top: 201.65px; width: 420px; height: 197.27px; }
+  .time__mtn--afternoon img { top: -0.57%; left: -0.27%; width: 100.54%; height: 101.14%; }
+  .time__mtn--night     { left: -41px; top: 234px; width: 442px; height: 186px; }
+  .time__mtn--night img     { top: -0.6%; left: -0.25%; width: 100.5%; height: 101.2%; }
+
+  .time__sun--morning   { left: 68px; top: 165px; }
+  .time__cloud          { left: 115px; top: 191px; }
+  .time__sun--afternoon { left: 143px; top: 123px; }
+  .time__moon           { left: 190px; top: 131px; }
+  .time__shadow         { left: 126px; top: 460px; }
+  .time__char { left: 48px; top: 254px; width: 280px; height: 280px; object-fit: cover; }
+
+  /* 스토리 진행 표시 (11칸 중 2칸) */
+  .time__progress { left: 16px; top: 52px; width: 343px; display: flex; gap: 4px; }
+  .time__progress i { flex: 1 0 0; height: 3px; border-radius: 3px; }
+  .time__progress i.is-on { background: rgba(255, 255, 255, .6); }
+
+  .time__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .time__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #333; }
+  .time__header { top: 62px; left: 0; width: 375px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .time__header p { font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #333; }
+  .time__header button { width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+
+  .time__text { left: 74px; top: 538px; width: 227px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: #333; }
+  .time__title { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: -0.4px; }
+  .time__title em { font-style: normal; color: #ff8a00; }
+  .time__sub { font-size: 16px; line-height: 22px; letter-spacing: -0.2px; white-space: nowrap; }
+  .time__home { left: 50%; bottom: 8px; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 등장: 해·달이 떠오르고 → 산 → 캐릭터 → 문구 */
+  .time.is-entering .time__sun--morning,
+  .time.is-entering .time__sun--afternoon,
+  .time.is-entering .time__moon  { animation: timeSky .9s cubic-bezier(.22,1,.36,1) .1s both; }
+  .time.is-entering .time__cloud { animation: timeCloud 1.1s cubic-bezier(.22,1,.36,1) .25s both; }
+  .time.is-entering .time__mtn   { animation: timeFade .8s ease-out both; }
+  .time.is-entering .time__char,
+  .time.is-entering .time__shadow { animation: timePop .6s cubic-bezier(.34,1.56,.64,1) .35s both; }
+  .time.is-entering .time__title { animation: timeRise .5s cubic-bezier(.22,1,.36,1) .6s both; }
+  .time.is-entering .time__sub   { animation: timeRise .5s cubic-bezier(.22,1,.36,1) .75s both; }
+  @keyframes timeSky   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  @keyframes timeCloud { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes timeFade  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes timePop   { from { opacity: 0; transform: translateY(20px) scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes timeRise  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .time, .time * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <main class="screen" id="screen" aria-label="2026 12월 리포트 - 이번달 나의 덩찌">
+    <div class="bg-reveal"></div>
+    <div class="spotlight" id="spotlight"><img src="assets/spotlight.svg" width="523.945" height="453.75" alt=""></div>
+
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <img src="assets/icon-status.svg" width="74" height="13" alt="">
+    </div>
+
+    <header class="header">
+      <p class="header__title">2026 12월 리포트</p>
+      <button class="header__close" aria-label="닫기">
+        <img class="is-dark" src="assets/icon-close.svg" width="18" height="18" alt="">
+        <img class="is-light" src="assets/icon-close-white.svg" width="18" height="18" alt="">
+      </button>
+    </header>
+
+    <h1 class="title" id="title">이번달 나의 덩찌는?</h1>
+
+    <div class="stage"><div class="track" id="track"></div></div>
+
+    <p class="caption" aria-live="polite">나만의 덩찌 찾는 중..</p>
+    <p class="rarity" id="rarity"></p>
+
+    <div class="cta">
+      <button class="cta__button" id="share">친구에게 공유하기</button>
+      <div class="cta__home"></div>
+    </div>
+
+    <div class="flash" id="flash"></div>
+    <!-- 주요 공부 시간 (Figma 229:1502 / 229:7510 / 231:1247) — 화면을 누르면 다음 장(덩찌) -->
+    <section class="time is-hidden" id="time" data-time="morning" aria-label="이번 달 주요 공부 시간. 누르면 다음 장으로 넘어갑니다.">
+      <img class="time__shadow" data-only="night" src="assets/time/night-shadow.svg" width="114" height="30" alt="">
+      <div class="time__mtn time__mtn--morning" data-only="morning"><img src="assets/time/morning-mountains.svg" alt=""></div>
+      <div class="time__mtn time__mtn--afternoon" data-only="afternoon"><img src="assets/time/afternoon-mountains.svg" alt=""></div>
+      <div class="time__mtn time__mtn--night" data-only="night"><img src="assets/time/night-mountains.svg" alt=""></div>
+
+      <div class="time__progress" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <header class="time__header">
+        <p>2026 12월 실록</p>
+        <button aria-label="닫기"><img src="assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="time__status"><span>9:41</span><img src="assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <div class="time__home"></div>
+
+      <img class="time__char" data-only="morning" src="assets/time/morning-character.png" alt="아침에 일어난 덩찌">
+      <img class="time__char" data-only="afternoon" src="assets/time/afternoon-character.gif" alt="책을 읽는 덩찌">
+      <img class="time__char" data-only="night" src="assets/time/night-character.gif" alt="밤에 공부하는 덩찌">
+
+      <div class="time__text">
+        <p class="time__title">주로 <em id="time-word">아침</em>에<br>가장 많이 공부했다네</p>
+        <p class="time__sub" id="time-sub">일찍 일어나는 새가 벌레를 잡는다!</p>
+      </div>
+
+      <img class="time__sun--morning" data-only="morning" src="assets/time/morning-sun.svg" width="74" height="74" alt="">
+      <img class="time__cloud" data-only="morning" src="assets/time/morning-cloud.svg" width="78.167" height="43.593" alt="">
+      <img class="time__sun--afternoon" data-only="afternoon" src="assets/time/afternoon-sun.svg" width="74" height="74" alt="">
+      <img class="time__moon" data-only="night" src="assets/time/night-moon.svg" width="61.403" height="58.398" alt="">
+    </section>
+
+    <!-- 표지 (Figma 142:453) -->
+    <section class="cover is-hidden" id="cover" aria-label="유저닉네임의 12월 실록 표지">
+      <svg width="0" height="0" aria-hidden="true"><filter id="cover-ink"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.2"/></filter></svg>
+      <div class="cover__status"><span>9:41</span><img src="assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <header class="cover__header">
+        <p>2026 12월 실록</p>
+        <button class="cover__close" aria-label="닫기"><img src="assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="cover__titles">
+        <p class="cover__to" id="cover-name">유저닉네임의</p>
+        <h2 class="cover__title"><em>12월</em> 실록</h2>
+        <p class="cover__lede">한 달의 공부를 이 한 권에 적었소.</p>
+      </div>
+      <div class="cover__card">
+        <div class="cover__silhouette" aria-hidden="true"></div>
+        <p class="cover__caption">마지막 장에서<br>자네의 덩찌가 기다린다네.</p>
+        <span class="cover__chip">No.?</span>
+      </div>
+      <div class="cover__seal"><img src="assets/cover-seal.svg" width="66.772" height="66.772" alt="우쑤한국사 인장"></div>
+      <ol class="cover__toc">
+        <li><span class="num">一</span><span>출석 기록</span></li>
+        <li><span class="num">二</span><span>오늘의 퀴즈 성과</span></li>
+        <li><span class="num">三</span><span>도전 장원 급제 성과</span></li>
+        <li><span class="num">四</span><span>이번 달의 덩찌</span></li>
+      </ol>
+      <div class="cover__cta">
+        <button class="cover__button" id="cover-open">펼쳐보기</button>
+        <div class="cover__home"></div>
+      </div>
+    </section>
+  </main>
+
+  <button class="replay" id="replay">다시 재생</button>
+
+  <template id="card-skeleton">
+    <div class="card__body card__body--skeleton">
+      <div class="skel-head"><span class="skel skel--name"></span><span class="skel skel--sub"></span></div>
+      <div class="silhouette"></div>
+      <div class="tiles">
+        <div class="tiles__row">
+          <div class="tile"><span class="skel skel--label"></span><span class="skel skel--value"></span></div>
+          <div class="tile"><span class="skel skel--label"></span><span class="skel skel--value"></span></div>
+        </div>
+        <div class="tiles__row">
+          <div class="tile"><span class="skel skel--label"></span><span class="skel skel--value"></span></div>
+          <div class="tile"><span class="skel skel--label"></span><span class="skel skel--value"></span></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="card-result">
+    <div class="card__body card__body--result">
+      <div class="result-top">
+        <div class="result-head">
+          <p class="result-name" data-k="name"></p>
+          <p class="result-desc" data-k="desc"></p>
+        </div>
+        <div class="result-char">
+          <div class="burst"></div>
+          <img data-k="image" width="210" height="210" alt="">
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tiles__row"></div>
+        <div class="tiles__row"></div>
+      </div>
+      <p class="badge" data-k="no"></p>
+    </div>
+  </template>
+
+<script>
+  // 결과 데이터 (실제로는 분석 API 응답으로 교체)
+  const RESULT = {
+    title: '찾았다 자네의 덩찌!',
+    no: 'No.07',
+    name: '새벽을 여는<br>장원급제 선비',
+    desc: '첫 닭이 울면 그대가 생각나는구려..',
+    image: 'assets/character-seonbi.png',
+    // 「before」 + [value + suffix(강조색)] + 「after」
+    rarity: { before: '전체 유저 중 ', value: 8, suffix: '%', after: '가 만났다네', countFrom: 100 },
+    stats: [
+      { label: '주요 활동 시간', text: '아침' },
+      { label: '최고 순위', value: 24, suffix: '위', countFrom: 99 },   // 순위는 위에서 내려오며 카운트
+      { label: '최고 달성', text: '조선시대' },
+      { label: '퀴즈 정답률', value: 75, suffix: '%' },
+    ],
+  };
+  const fmt = s => s.text ?? `${s.prefix ?? ''}${s.value}${s.suffix ?? ''}`;
+
+  const CARD_W = 272, GAP = 17, STEP = CARD_W + GAP, SCREEN_W = 375;
+  const COUNT = 26, TARGET = 20;
+  const SPIN_MS = 2400;       // 셔플 → 감속 정지
+  const ANALYZE_MS = 1300;    // 스켈레톤 상태 유지 (API 대기 연출)
+
+  const $ = id => document.getElementById(id);
+  const screen = $('screen'), track = $('track'), title = $('title');
+  if (window.self !== window.top) document.body.classList.add('is-embed');
+  const tplSkeleton = $('card-skeleton'), tplResult = $('card-result');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf, timers = [], anims = [];
+
+  const offsetFor = i => i * STEP + CARD_W / 2 - SCREEN_W / 2;
+  const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+  const setX = x => track.style.transform = `translateX(${-x}px)`;
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const animate = (el, kf, opt) => { const a = el.animate(kf, { fill: 'both', ...opt }); anims.push(a); return a; };
+  const POP = 'cubic-bezier(.34, 1.56, .64, 1)', OUT = 'cubic-bezier(.22, 1, .36, 1)';
+
+  function build() {
+    track.innerHTML = '';
+    for (let i = 0; i < COUNT; i++) {
+      const c = document.createElement('div');
+      c.className = 'card';
+      c.style.left = i * STEP + 'px';
+      c.appendChild(tplSkeleton.content.cloneNode(true));
+      if (i === TARGET) {
+        const body = tplResult.content.cloneNode(true);
+        body.querySelector('[data-k="name"]').innerHTML = RESULT.name;
+        body.querySelector('[data-k="desc"]').textContent = RESULT.desc;
+        body.querySelector('[data-k="image"]').src = RESULT.image;
+        body.querySelector('[data-k="no"]').textContent = RESULT.no;
+        const rows = body.querySelectorAll('.card__body--result .tiles__row');
+        RESULT.stats.forEach((s, n) => {
+          rows[n >> 1].insertAdjacentHTML('beforeend',
+            `<div class="tile"><p class="tile__label">${s.label}</p><p class="tile__value">${fmt(s)}</p></div>`);
+        });
+        c.appendChild(body);
+      }
+      track.appendChild(c);
+    }
+  }
+
+  function countUp(el, s, ms) {
+    if (s.text != null) return;   // 숫자가 아닌 값(예: '아침')은 카운트하지 않음
+    const { value, countFrom = 0 } = s;
+    const t0 = performance.now();
+    (function f(now) {
+      const p = Math.min(1, (now - t0) / ms);
+      el.textContent = fmt({ ...s, value: Math.round(countFrom + (value - countFrom) * easeOutQuart(p)) });
+      if (p < 1) requestAnimationFrame(f);
+    })(t0);
+  }
+
+  function burst(container) {
+    const colors = ['#ff8a00', '#ffbf10', '#ffffff', '#ffc422'];
+    for (let i = 0; i < 18; i++) {
+      const dot = document.createElement('i');
+      const ang = (i / 18) * Math.PI * 2 + Math.random() * .3;
+      const dist = 95 + Math.random() * 45;
+      const size = 5 + Math.random() * 6;
+      dot.style.cssText = `width:${size}px;height:${size}px;margin:${-size / 2}px;background:${colors[i % 4]}`;
+      container.appendChild(dot);
+      animate(dot, [
+        { opacity: 1, transform: 'translate(0,0) scale(1)' },
+        { opacity: 1, transform: `translate(${Math.cos(ang) * dist * .8}px,${Math.sin(ang) * dist * .8}px) scale(1)`, offset: .6 },
+        { opacity: 0, transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist + 14}px) scale(.3)` },
+      ], { duration: 900 + Math.random() * 300, easing: OUT, delay: 40 });
+    }
+  }
+
+  // ---------- 공개 연출 ----------
+  function reveal(card) {
+    const result = card.querySelector('.card__body--result');
+    const head = result.querySelector('.result-head');
+    const img = result.querySelector('.result-char img');
+    const tiles = result.querySelectorAll('.tile');
+    const badge = result.querySelector('.badge');
+    const rarity = $('rarity');
+    const R = RESULT.rarity;
+    rarity.innerHTML = `${R.before}<span class="rarity__num"></span>${R.after}`;
+    const rarityNum = rarity.querySelector('.rarity__num');
+    rarityNum.textContent = fmt(R);
+
+    if (reduceMotion) {
+      screen.classList.add('is-revealed');
+      card.classList.remove('is-analyzing');
+      title.textContent = RESULT.title;
+      animate(rarity, [{ opacity: 1 }], { duration: 0 });
+      animate($('spotlight'), [{ opacity: 1 }], { duration: 0 });
+      animate(document.querySelector('.bg-reveal'), [{ opacity: 1 }], { duration: 0 });
+      animate($('share'), [{ opacity: 1, transform: 'none' }], { duration: 0 });
+      $('share').style.pointerEvents = 'auto';
+      return;
+    }
+
+    // 1) 기 모으기: 카드가 살짝 움츠러들며 떨림
+    animate(card, [
+      { transform: 'scale(1) rotate(0)' },
+      { transform: 'scale(.965) rotate(-1.2deg)', offset: .25 },
+      { transform: 'scale(.955) rotate(1.2deg)', offset: .5 },
+      { transform: 'scale(.95) rotate(-.8deg)', offset: .75 },
+      { transform: 'scale(.95) rotate(0)' },
+    ], { duration: 380, easing: 'ease-in-out', fill: 'none' });
+    navigator.vibrate?.([8, 40, 8, 40, 8]);
+
+    // 2) 번쩍! (380ms)
+    later(() => {
+      animate($('flash'), [{ opacity: 0 }, { opacity: .95, offset: .2 }, { opacity: 0 }], { duration: 550, easing: 'ease-out' });
+      screen.classList.add('is-revealed');
+      card.classList.remove('is-analyzing');
+      title.textContent = RESULT.title;
+      navigator.vibrate?.(35);
+
+      // 카드 팝
+      animate(card, [{ transform: 'scale(.95)' }, { transform: 'scale(1.04)', offset: .45 }, { transform: 'scale(1)' }],
+        { duration: 600, easing: OUT, fill: 'none' });
+
+      // 배경 + 스포트라이트가 위에서 쏟아짐 → 이후 은은하게 흔들림
+      animate(document.querySelector('.bg-reveal'), [{ opacity: 0 }, { opacity: 1 }], { duration: 500, easing: 'ease-out' });
+      animate($('spotlight'), [
+        { opacity: 0, transform: 'translateX(-50%) scaleY(0) scaleX(.4)' },
+        { opacity: 1, transform: 'translateX(-50%) scaleY(1) scaleX(1)' },
+      ], { duration: 700, easing: OUT }).finished.then(() => {
+        animate($('spotlight'), [
+          { transform: 'translateX(-50%) rotate(0deg)' },
+          { transform: 'translateX(-50%) rotate(2.5deg)' },
+          { transform: 'translateX(-50%) rotate(-2.5deg)' },
+          { transform: 'translateX(-50%) rotate(0deg)' },
+        ], { duration: 6000, iterations: Infinity, easing: 'ease-in-out', composite: 'replace' });
+      }).catch(() => {});
+
+      // 타이틀
+      animate(title, [
+        { opacity: 0, transform: 'translateX(-50%) translateY(8px) scale(.9)' },
+        { opacity: 1, transform: 'translateX(-50%) translateY(0) scale(1)' },
+      ], { duration: 500, easing: POP, delay: 120 });
+
+      // 캐릭터: 아래에서 튀어 오르며 등장 + 파티클
+      animate(img, [
+        { opacity: 0, transform: 'translateY(40px) scale(.5)' },
+        { opacity: 1, transform: 'translateY(-14px) scale(1.08)', offset: .55 },
+        { opacity: 1, transform: 'translateY(0) scale(1)' },
+      ], { duration: 750, easing: OUT, delay: 60 });
+      later(() => burst(result.querySelector('.burst')), 180);
+
+      // 이름 / 설명
+      animate(head, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 450, easing: OUT, delay: 380 });
+
+      // 타일 순차 등장 + 숫자 카운트업
+      tiles.forEach((t, n) => {
+        animate(t, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 450, easing: OUT, delay: 560 + n * 80 });
+        const s = RESULT.stats[n];
+        const v = t.querySelector('.tile__value');
+        if (s.text == null) v.textContent = fmt({ ...s, value: s.countFrom ?? 0 });
+        later(() => countUp(v, s, 900), 560 + n * 80);
+      });
+
+      // No.07 배지: 도장 찍듯 쾅
+      animate(badge, [
+        { opacity: 0, transform: 'scale(2.2) rotate(-14deg)' },
+        { opacity: 1, transform: 'scale(.92) rotate(3deg)', offset: .6 },
+        { opacity: 1, transform: 'scale(1) rotate(0)' },
+      ], { duration: 420, easing: 'cubic-bezier(.5, 0, .75, 0)', delay: 900 });
+      later(() => navigator.vibrate?.(15), 1150);
+
+      // 희소성: 100% → 8%로 좁혀지며 등장
+      animate(rarity, [
+        { opacity: 0, transform: 'translateX(-50%) translateY(10px)' },
+        { opacity: 1, transform: 'translateX(-50%) translateY(0)' },
+      ], { duration: 450, easing: OUT, delay: 1250 });
+      rarityNum.textContent = fmt({ ...R, value: R.countFrom });
+      later(() => countUp(rarityNum, R, 1000), 1250);
+
+      // 공유 버튼
+      animate($('share'), [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 500, easing: OUT, delay: 1700 });
+      later(() => $('share').style.pointerEvents = 'auto', 1700);
+    }, 380);
+  }
+
+  function land() {
+    const cards = track.children;
+    const card = cards[TARGET];
+    cards[TARGET - 1].classList.add('is-prev');
+    cards[TARGET + 1].classList.add('is-next');
+    card.classList.add('is-active', 'is-analyzing');
+    navigator.vibrate?.(20);
+    later(() => reveal(card), ANALYZE_MS);
+  }
+
+  function reset() {
+    cancelAnimationFrame(raf);
+    timers.forEach(clearTimeout); timers = [];
+    anims.forEach(a => a.cancel()); anims = [];
+    screen.classList.remove('is-revealed');
+    title.textContent = '이번달 나의 덩찌는?';
+    $('share').style.pointerEvents = 'none';
+  }
+
+  function play() {
+    reset();
+    build();
+    const end = offsetFor(TARGET);
+    if (reduceMotion) { setX(end); land(); return; }
+    const t0 = performance.now();
+    setX(0);
+    (function frame(now) {
+      const p = Math.min(1, (now - t0) / SPIN_MS);
+      setX(end * easeOutQuart(p));
+      if (p < 1) raf = requestAnimationFrame(frame);
+      else land();
+    })(t0);
+  }
+
+  // ---------- 표지 → 셔플 연결 ----------
+  const cover = $('cover');
+  function showCover() {
+    reset();
+    $('time').classList.add('is-hidden');
+    build();
+    setX(0);
+    cover.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void cover.offsetWidth;
+    cover.classList.add('is-entering');
+  }
+  // 결과 화면만 보기: 셔플 없이 멈춘 카드에서 바로 공개
+  function showResult() {
+    reset();
+    build();
+    cover.classList.add('is-hidden');
+    $('time').classList.add('is-hidden');
+    setX(offsetFor(TARGET));
+    const cards = track.children;
+    cards[TARGET - 1].classList.add('is-prev');
+    cards[TARGET + 1].classList.add('is-next');
+    cards[TARGET].classList.add('is-active');
+    later(() => reveal(cards[TARGET]), 300);
+  }
+
+  // 페이지 종류: <html data-page="flow | cover | result">
+  //  flow   — 표지 → 셔플 → 결과 (index.html)
+  //  cover  — 표지만 (cover.html). 「펼쳐보기」는 전체 흐름으로 이동
+  //  result — 결과 공개만 (result.html)
+  const PAGE = document.documentElement.dataset.page || 'flow';
+
+  // ---------- 주요 공부 시간 (표지 다음 장) ----------
+  // 실제 데이터: 이번 달 가장 많이 공부한 시간대. 미리보기는 주소 뒤에 ?time=afternoon 처럼 바꿔 볼 수 있다.
+  const TIMES = {
+    morning:   { word: '아침', sub: '일찍 일어나는 새가 벌레를 잡는다!' },
+    afternoon: { word: '오후', sub: '일찍 일어나는 새가 벌레를 잡는다!' },
+    night:     { word: '밤',   sub: '낮에는 밭을 갈고 밤에는 글을 읽는다' },
+  };
+  const timeKey = new URLSearchParams(location.search).get('time');
+  const ACTIVE_TIME = TIMES[timeKey] ? timeKey : 'morning';
+  const time = $('time');
+  function showTime() {
+    const t = TIMES[ACTIVE_TIME];
+    time.dataset.time = ACTIVE_TIME;
+    $('time-word').textContent = t.word;
+    $('time-sub').textContent = t.sub;
+    time.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void time.offsetWidth;
+    time.classList.add('is-entering');
+  }
+  time.addEventListener('click', e => {
+    if (time.classList.contains('is-leaving') || e.target.closest('.time__header button')) return;
+    navigator.vibrate?.(10);
+    time.classList.add('is-leaving');
+    play();                                    // 시간 화면이 걷히는 동안 셔플 시작
+    setTimeout(() => time.classList.add('is-hidden'), 400);
+  });
+
+  $('cover-open').addEventListener('click', () => {
+    navigator.vibrate?.(10);
+    cover.classList.add('is-leaving');
+    if (PAGE === 'cover') { setTimeout(() => { location.href = 'index.html'; }, 450); return; }
+    showTime();                                // 표지 아래에서 시간 화면이 드러남
+    setTimeout(() => cover.classList.add('is-hidden'), 450);
+  });
+  function startTime() { reset(); build(); setX(0); cover.classList.add('is-hidden'); showTime(); }
+  const start = PAGE === 'result' ? showResult : PAGE === 'time' ? startTime : showCover;
+  $('replay').addEventListener('click', start);
+  start();
+</script>
+</body>
+</html>
