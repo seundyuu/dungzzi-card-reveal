@@ -531,6 +531,16 @@
   .tapzone--next { left: 112px; width: 263px; }
 
   /* ---------- 공유 시트 (Figma 239:2372) — 결과 화면 위 오버레이 ---------- */
+  /* 기기 기본 공유하기 (v2, Figma 09 160:1272). 아이폰 등에서는 진짜 공유 시트, 안 되면 iOS 공유 시트 캡처를 보여 줌 */
+  .ios-sheet { position: absolute; inset: 0; z-index: 30; cursor: pointer; }
+  .ios-sheet.is-hidden { display: none; }
+  .ios-sheet__img {
+    position: absolute; left: 13px; top: 294px; width: 347px; height: 497px; border-radius: 31px; object-fit: cover;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+    transform: translateY(560px); transition: transform .38s cubic-bezier(.22, 1, .36, 1);
+  }
+  .ios-sheet.is-open .ios-sheet__img { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .ios-sheet__img { transition: none; } }
   .share-sheet { position: absolute; inset: 0; overflow: hidden; transition: opacity .3s ease; }
   .share-sheet > * { position: absolute; }
   .share-sheet.is-hidden { opacity: 0; visibility: hidden; transition: none; }
@@ -710,6 +720,9 @@
 
     <div class="flash" id="flash"></div>
     <!-- 공유 시트 (Figma 239:2372 위치 기준, 내용은 자체 UI) — 결과 화면(.screen) 위 오버레이. 열 때 .screen 에 .is-sharing 추가 -->
+    <div class="ios-sheet is-hidden" id="ios-sheet" role="dialog" aria-label="공유하기 (iOS 기본 공유 시트 예시). 누르면 닫힙니다.">
+      <img class="ios-sheet__img" src="../assets/share/ios-share-sheet.jpg" width="347" height="497" alt="iOS 기본 공유 시트">
+    </div>
     <div class="share-sheet is-hidden" id="share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-sheet-title">
       <div class="share-sheet__dim" data-share-close></div>
       <div class="share-sheet__panel">
@@ -1382,12 +1395,40 @@
     sheet.classList.add('is-entering');
   }
   function closeShare(instant) {
+    closeIosSheet(instant);
     screen.classList.remove('is-sharing');
     if (instant) { sheet.className = 'share-sheet is-hidden'; return; }
     sheet.classList.add('is-leaving');
     setTimeout(() => sheet.classList.add('is-hidden'), 350);
   }
-  $('share').addEventListener('click', () => { navigator.vibrate?.(10); openShare(); });
+  // 「친구에게 공유하기」 → 기기 기본 공유하기로 결과 카드 이미지 공유.
+  // PC에서 볼 때나 기본 공유를 쓸 수 없을 때는 iOS 공유 시트 캡처(Figma 09)를 보여 줌.
+  const iosSheet = $('ios-sheet');
+  let shareFile = null;
+  fetch('../assets/share/card-no01.png').then(r => r.blob())
+    .then(b => { shareFile = new File([b], '2026-12월-실록-덩찌.png', { type: 'image/png' }); }).catch(() => {});
+  function openIosSheet() {
+    iosSheet.classList.remove('is-hidden');
+    void iosSheet.offsetWidth;
+    iosSheet.classList.add('is-open');
+  }
+  function closeIosSheet(instant) {
+    if (iosSheet.classList.contains('is-hidden')) return;
+    iosSheet.classList.remove('is-open');
+    if (instant) { iosSheet.classList.add('is-hidden'); return; }
+    setTimeout(() => { if (!iosSheet.classList.contains('is-open')) iosSheet.classList.add('is-hidden'); }, 380);
+  }
+  iosSheet.addEventListener('click', () => closeIosSheet());
+  $('share').addEventListener('click', () => {
+    navigator.vibrate?.(10);
+    const data = shareFile && { files: [shareFile], title: '2026 12월 실록' };
+    const isPhone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isPhone && data && navigator.canShare?.(data)) {
+      navigator.share(data).catch(err => { if (err.name !== 'AbortError') openIosSheet(); });
+    } else {
+      openIosSheet();
+    }
+  });
   sheet.querySelectorAll('[data-share-close]').forEach(b => b.addEventListener('click', () => closeShare()));
   const SHARE_MSG = { story: '스토리에 올렸소!', save: '이미지를 저장했소!', link: '링크를 복사했소!', more: '공유했소!' };
   sheet.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => {
