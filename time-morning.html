@@ -505,6 +505,12 @@
 
   .story { z-index: 45; }
   /* 이전 장 / 다음 장 터치 영역 (Figma 239:1607): 헤더 아래부터 화면 끝까지, 왼쪽 113 · 오른쪽 263 */
+  .time.is-behind, .story.is-behind { opacity: 1 !important; z-index: 47 !important; transition: none !important; }
+  .time.is-front, .story.is-front { z-index: 48 !important; }
+  /* 인스타 스토리처럼 자동 넘김: 현재 칸이 AUTO_MS 동안 채워진 뒤 다음 장 */
+  .time__progress i, .story__progress i { position: relative; overflow: hidden; }
+  .time__progress i.is-current::after, .story__progress i.is-current::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: rgba(255, 255, 255, .6); transform-origin: 0 50%; animation: progFill var(--auto-ms, 5s) linear both; }
+  @keyframes progFill { from { transform: scaleX(0); } to { transform: none; } }
   .tapzone { position: absolute; top: 106px; height: 706px; padding: 0; border: 0; background: transparent; cursor: pointer; z-index: 5; -webkit-tap-highlight-color: transparent; }
   .tapzone--prev { left: 0; width: 113px; }
   .tapzone--next { left: 112px; width: 263px; }
@@ -1220,6 +1226,7 @@
 
   function reset() {
     cancelAnimationFrame(raf);
+    if (typeof stopAuto === 'function') stopAuto();
     timers.forEach(clearTimeout); timers = [];
     anims.forEach(a => a.cancel()); anims = [];
     screen.classList.remove('is-revealed', 'is-sharing');
@@ -1298,6 +1305,7 @@
     time.classList.remove('is-hidden', 'is-leaving', 'is-entering');
     void time.offsetWidth;
     time.classList.add('is-entering');
+    startAuto(time);
   }
   // ---------- 이야기 장 넘기기: 시간 → 퀴즈 → 밥그릇 → 랭킹 → 셔플 ----------
   // 각 장 왼쪽(113px)을 누르면 이전 장, 나머지를 누르면 다음 장 (Figma 239:1607)
@@ -1308,6 +1316,22 @@
     el.classList.remove('is-hidden', 'is-leaving', 'is-entering');
     void el.offsetWidth;
     el.classList.add('is-entering');
+    startAuto(el);
+  }
+  // 자동 넘김 (5초). 진행 표시: 지난 장은 채움, 현재 장은 5초 동안 왼쪽부터 채워짐
+  const AUTO_MS = 5000;
+  var autoT = 0;
+  function stopAuto() { clearTimeout(autoT); }
+  function startAuto(el) {
+    stopAuto();
+    const k = STEPS.indexOf(el);
+    const bars = el.querySelectorAll('.time__progress i, .story__progress i');
+    bars.forEach((b, i) => { b.classList.toggle('is-on', i < k); b.classList.remove('is-current'); });
+    void el.offsetWidth;
+    bars[k]?.classList.add('is-current');
+    autoT = setTimeout(() => {
+      if (STEPS[step] === el && !el.classList.contains('is-hidden') && !el.classList.contains('is-leaving')) goStep(step + 1);
+    }, AUTO_MS);
   }
   function leave(el) {
     el.classList.add('is-leaving');
@@ -1316,15 +1340,21 @@
   function goStep(n) {
     const cur = STEPS[step];
     if (cur.classList.contains('is-leaving')) return;
+    stopAuto();
     navigator.vibrate?.(10);
     if (n >= STEPS.length) { leave(cur); play(); return; }   // 마지막 장 → 덩찌 셔플
     if (n < 0) {                                              // 첫 장에서 이전 → 표지
       if (PAGE !== 'flow') return;
       leave(cur); showCover(); return;
     }
+    // 장 사이 전환: 나가는 장은 그대로 두고 들어오는 장만 위에서 페이드 → 아래 셔플 화면이 비치지 않게
+    const next = STEPS[n];
     step = n;
-    enter(STEPS[n]);
+    cur.classList.add('is-behind');
+    next.classList.add('is-front');
+    enter(next);
     leave(cur);
+    setTimeout(() => { cur.classList.remove('is-behind'); next.classList.remove('is-front'); }, 420);
   }
   STEPS.forEach(el => {
     el.insertAdjacentHTML('beforeend',
@@ -1332,7 +1362,7 @@
     el.querySelector('.tapzone--prev').addEventListener('click', () => goStep(step - 1));
     el.querySelector('.tapzone--next').addEventListener('click', () => goStep(step + 1));
   });
-  function hideSteps() { STEPS.forEach(el => el.classList.add('is-hidden')); step = 0; }
+  function hideSteps() { stopAuto(); STEPS.forEach(el => el.classList.add('is-hidden')); step = 0; }
 
   $('cover-open').addEventListener('click', () => {
     navigator.vibrate?.(10);
