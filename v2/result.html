@@ -228,7 +228,7 @@
   .result-quote {
     width: 100%; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .7);
     font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: var(--gray-300);
-    text-align: center; white-space: pre-line;
+    text-align: center; white-space: pre-line; word-break: keep-all; text-wrap: balance;
   }
   /* 한 줄 소개가 2줄이면 카드 358 → 380 (Figma 291:6062) */
   .is-revealed .card.is-active.is-2line { height: 380px; }
@@ -247,8 +247,40 @@
     font: 600 14px/20px "Pretendard", sans-serif; color: var(--gray-100);
     padding: 10px 18px; border-radius: 999px; border: 1px solid #cfccc6; background: #fff; cursor: pointer;
   }
+  .controls { display: flex; gap: 8px; }
+  /* 06 건너뛰기(도전 장원급제 미참여): 진행 표시 3칸 */
+  .no-rank .time__progress i:nth-child(4), .no-rank .story__progress i:nth-child(4) { display: none; }
+
+  /* ---------- 조건 패널 (프로토타입 전용, 폰 화면 밖) ---------- */
+  .cond { position: fixed; z-index: 100; right: 16px; top: 16px; width: 288px; max-height: calc(100vh - 32px); overflow: auto;
+    padding: 18px 18px 16px; border-radius: 18px; background: #fff; box-shadow: 0 12px 40px rgba(30, 30, 30, .18);
+    font: 400 13px/18px "Pretendard", sans-serif; color: var(--gray-200); letter-spacing: -0.2px; }
+  .cond[hidden] { display: none; }
+  .cond__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cond__head h2 { font-size: 16px; line-height: 22px; font-weight: 700; color: var(--gray-100); }
+  .cond__x { width: 28px; height: 28px; border: 0; border-radius: 14px; background: var(--gray-800); cursor: pointer; font-size: 16px; line-height: 28px; color: var(--gray-300); }
+  .cond__field { padding: 10px 0; border-top: 1px solid var(--gray-800); display: flex; flex-direction: column; gap: 6px; }
+  .cond__label { font-weight: 600; color: var(--gray-100); display: flex; justify-content: space-between; gap: 8px; }
+  .cond__label small { font-weight: 600; font-size: 12px; color: var(--primary); }
+  .cond__seg { display: flex; gap: 4px; }
+  .cond__seg label { flex: 1; }
+  .cond__seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .cond__seg span { display: block; text-align: center; padding: 7px 0; border-radius: 8px; background: var(--gray-800); cursor: pointer; font-weight: 600; }
+  .cond__seg input:checked + span { background: var(--primary); color: #fff; }
+  .cond__seg input:focus-visible + span { outline: 2px solid var(--gray-100); outline-offset: 1px; }
+  .cond__row { display: flex; gap: 6px; align-items: center; }
+  .cond input[type=number], .cond select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--gray-600); border-radius: 8px; font: inherit; color: var(--gray-100); background: #fff; }
+  .cond input[type=number] { width: 84px; }
+  .cond__hint { font-size: 12px; color: #8b8b8b; }
+  .cond__check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .cond__check input { width: 16px; height: 16px; accent-color: var(--primary); }
+  .cond__result { margin-top: 4px; padding: 10px 12px; border-radius: 12px; background: #fff6e5; color: var(--gray-100); }
+  .cond__result b { color: var(--primary); }
+  .cond__apply { margin-top: 12px; width: 100%; height: 44px; border: 0; border-radius: 10px; background: var(--primary); color: #fff; font: 700 15px/20px "Pretendard", sans-serif; cursor: pointer; }
+  @media (max-width: 500px) { .cond { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 75vh; } }
+
   body.is-embed { background: transparent; padding: 0; min-height: 0; }
-  body.is-embed .replay { display: none; }
+  body.is-embed .replay, body.is-embed .cond { display: none; }
 
   /* ---------- 첫 진입 팝업 (Figma 160:773) — 홈 화면 위에 바텀시트로 「12월 실록이 도착했네」 ---------- */
   .popup { inset: 0; z-index: 60; background: #f7f5f2; overflow: hidden; transition: opacity .35s ease; }
@@ -1002,7 +1034,39 @@
 
   </main>
 
+  <div class="controls">
   <button class="replay" id="replay">다시 재생</button>
+  <button class="replay" id="cond-open" type="button" aria-controls="cond">조건 바꾸기</button>
+  </div>
+  <!-- 조건 패널: 정책(Figma spec 00~08)대로 03 시간대 · 05 밥그릇 · 06 건너뛰기 · 08 덩찌 12종이 바뀜 -->
+  <form class="cond" id="cond" hidden aria-label="조건 바꾸기">
+    <div class="cond__head"><h2>조건 바꾸기</h2><button class="cond__x" type="button" id="cond-close" aria-label="닫기">✕</button></div>
+    <div class="cond__field">
+      <p class="cond__label">주요 공부 시간</p>
+      <div class="cond__seg">
+        <label><input type="radio" name="time" value="morning"><span>아침</span></label>
+        <label><input type="radio" name="time" value="afternoon"><span>점심</span></label>
+        <label><input type="radio" name="time" value="night"><span>저녁</span></label>
+      </div>
+    </div>
+    <div class="cond__field">
+      <p class="cond__label">밥 먹인 횟수 <small id="cond-bowl-type"></small></p>
+      <div class="cond__row"><input type="number" name="bowl" min="0" max="999" inputmode="numeric"> 그릇</div>
+      <p class="cond__hint">50그릇 이상 수라상형 · 미만 소박형</p>
+    </div>
+    <div class="cond__field">
+      <p class="cond__label">오늘의 퀴즈 참여 일수 <small id="cond-quiz-type"></small></p>
+      <div class="cond__row"><input type="number" name="quiz" min="0" max="31" inputmode="numeric"> 일</div>
+      <p class="cond__hint">15일 이상 부지런형 · 미만 느긋형</p>
+    </div>
+    <div class="cond__field">
+      <label class="cond__check"><input type="checkbox" name="ranked"> <span class="cond__label">도전 장원급제 참여</span></label>
+      <div class="cond__row"><select name="era" aria-label="시대"></select><input type="number" name="rankNo" min="1" max="999" inputmode="numeric" aria-label="순위"> 위</div>
+      <p class="cond__hint">참여하지 않으면 06 화면을 건너뛰고 진행 표시가 3칸</p>
+    </div>
+    <p class="cond__result" id="cond-result" aria-live="polite"></p>
+    <button class="cond__apply" type="submit">이 조건으로 처음부터 보기</button>
+  </form>
 
   <template id="card-skeleton">
     <div class="card__body card__body--skeleton">
@@ -1029,6 +1093,7 @@
     </div>
   </template>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   // 결과 데이터 (실제로는 분석 API 응답으로 교체)
   const RESULT = {
@@ -1038,8 +1103,42 @@
     desc: '첫 닭이 울면 그대가 생각나는 구려..',
     image: '../assets/character-seonbi.png',
   };
-  // 한 줄 소개 2줄 예시 보기: ?line=2 (Figma 08결과_2줄 291:6062)
-  if (new URLSearchParams(location.search).get('line') === '2') RESULT.desc = '소박한 밥상이지만 학문만큼은\n소박하지 않았구려';
+  // ---------- 조건 (정책: Figma spec 00 공통 · 03~08) ----------
+  // 덩찌 12종 = 시간대 3 × 밥(50그릇 이상 수라상 / 미만 소박) × 퀴즈(15일 이상 부지런 / 미만 느긋)
+  // 캐릭터 이미지 · 배경색은 아직 없어 모든 덩찌가 선비 이미지를 같이 씀
+  const DUNGZZI = [
+    ['morning',   1, 1, '새벽을 여는<br>장원급제 선비',      '첫닭이 울면 그대의 하루가 시작되는 구려.'],
+    ['morning',   1, 0, '휘파람 불며<br>아침밥 먹는 한량',    '자네의 밥상에는 아낌이 없구려.'],
+    ['morning',   0, 1, '학문을 위해<br>눈뜨는 나그네',      '(자신만의 속도로) 조용히 한 장씩 넘겼구려.'],
+    ['morning',   0, 0, '조용한 아침을<br>맞이하는 승려',     '소소한 모습도 보기 좋구려.'],
+    ['afternoon', 1, 1, '뜨거운 태양 아래<br>붓잡이 선비',    '그대의 열정은 태양도 못 따라 가겠구려.'],
+    ['afternoon', 1, 0, '대낮 뱃놀이를<br>하는 한량',        '놀기도 잘 노는 그대! 보기 좋구려.'],
+    ['afternoon', 0, 1, '나무 그늘<br>쉬어가는 나그네',      '쉬어가는 것도 굉장히 중요하오, 잘하고 있구려.'],
+    ['afternoon', 0, 0, '산들바람 속<br>명상 중인 승려',      '마음은 비웠으나 정답은 알고 있구려.'],
+    ['night',     1, 1, '서당 등불을<br>밝히는 선비',        '밤마다 서당에 불을 킨게 당신 이구려.'],
+    ['night',     1, 0, '달빛을<br>벗 삼은 한량',           '달이 뜨면 항상 밥을 먹으러 왔구려.'],
+    ['night',     0, 1, '밤이면<br>찾아오는 나그네',         '소박한 밥상이지만 학문만큼은 소박하지 않았구려.'],
+    ['night',     0, 0, '유유자적<br>달밤 승려',            '마음 가는 밤에 여유롭게 공부했구려.'],
+  ].map(([time, sura, diligent, name, desc], i) => ({ no: i + 1, time, sura: !!sura, diligent: !!diligent, name, desc }));
+  const ERAS = ['선사시대', '삼국시대', '고려시대', '조선시대', '일제강점기', '근대사', '현대사'];
+  const BOWL_MIN = 50, QUIZ_MIN = 15;
+  const qs = new URLSearchParams(location.search);
+  const num = (k, d) => (qs.has(k) && qs.get(k) !== '' && !isNaN(+qs.get(k))) ? Math.max(0, Math.round(+qs.get(k))) : d;
+  const COND = {
+    time: ['morning', 'afternoon', 'night'].includes(qs.get('time')) ? qs.get('time') : (document.documentElement.dataset.time || 'morning'),
+    bowl: num('bowl', 50),
+    quiz: num('quiz', 20),
+    ranked: qs.get('ranked') !== '0',
+    era: ERAS.includes(qs.get('era')) ? qs.get('era') : '선사시대',
+    rankNo: Math.max(1, num('rankNo', 24)),
+  };
+  if (qs.get('line') === '2') Object.assign(COND, { time: 'night', bowl: 12, quiz: 20 });   // 예전 링크 호환: 한 줄 소개 2줄 예시(No.11)
+  const pickDungzzi = c => DUNGZZI.find(d => d.time === c.time && d.sura === (c.bowl >= BOWL_MIN) && d.diligent === (c.quiz >= QUIZ_MIN));
+  function applyResult() {
+    const d = pickDungzzi(COND);
+    Object.assign(RESULT, { no: 'No.' + String(d.no).padStart(2, '0'), name: d.name, desc: d.desc });
+  }
+  applyResult();
   const fmt = s => s.text ?? `${s.prefix ?? ''}${s.value}${s.suffix ?? ''}`;
 
   const CARD_W = 272, GAP = 17, STEP = CARD_W + GAP, SCREEN_W = 375;
@@ -1072,7 +1171,6 @@
         const body = tplResult.content.cloneNode(true);
         body.querySelector('[data-k="name"]').innerHTML = RESULT.name;
         body.querySelector('[data-k="desc"]').textContent = RESULT.desc;
-        if (RESULT.desc.includes('\n')) c.classList.add('is-2line');
         body.querySelector('[data-k="image"]').src = RESULT.image;
         body.querySelector('[data-k="no"]').textContent = RESULT.no;
         c.appendChild(body);
@@ -1115,6 +1213,7 @@
     const head = result.querySelector('.result-head');
     const img = result.querySelector('.result-char img');
     const quote = result.querySelector('.result-quote');
+    card.classList.toggle('is-2line', quote.offsetHeight > 50);   // 한 줄 소개가 2줄이면 카드 358 → 380
     const badge = result.querySelector('.badge');
     const end = $('end');
 
@@ -1124,6 +1223,7 @@
       title.textContent = RESULT.title;
       animate(end, [{ opacity: 1 }], { duration: 0 });
       end.style.pointerEvents = 'auto';
+      setTimeout(() => makeShareFile(), 50);
       animate($('spotlight'), [{ opacity: 1 }], { duration: 0 });
       animate(document.querySelector('.bg-reveal'), [{ opacity: 1 }], { duration: 0 });
       animate($('share'), [{ opacity: 1, transform: 'none' }], { duration: 0 });
@@ -1202,6 +1302,7 @@
         { duration: 500, easing: OUT, delay: 1300 });
       animate(end, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: 'ease-out', delay: 1500 });
       later(() => { $('share').style.pointerEvents = 'auto'; end.style.pointerEvents = 'auto'; }, 1300);
+      later(() => makeShareFile(), 2000);
     }, 380);
   }
 
@@ -1285,8 +1386,7 @@
     afternoon: { word: '점심', sub: '해가 중천에 떠도 붓은 멈추지 않는다', bubble: '한 장만 더 읽겠소' },
     night:     { word: '저녁', sub: '낮에는 밭을 갈고 밤에는 글을 읽는다', bubble: '주경야독이라고 하지' },
   };
-  const timeKey = new URLSearchParams(location.search).get('time') || document.documentElement.dataset.time;
-  const ACTIVE_TIME = TIMES[timeKey] ? timeKey : 'morning';
+  let ACTIVE_TIME = COND.time;
   const time = $('time');
   function showTime() {
     const t = TIMES[ACTIVE_TIME];
@@ -1301,7 +1401,8 @@
   }
   // ---------- 이야기 장 넘기기: 시간 → 퀴즈 → 밥그릇 → 랭킹 → 셔플 ----------
   // 각 장 왼쪽(113px)을 누르면 이전 장, 나머지를 누르면 다음 장 (Figma 239:1607)
-  const STEPS = ['time', 'story-quiz', 'story-bowl', 'story-rank'].map($);
+  const ALL_STEPS = ['time', 'story-quiz', 'story-bowl', 'story-rank'].map($);
+  let STEPS = ALL_STEPS;
   let step = 0;
   function enter(el) {
     if (el === time) return showTime();
@@ -1348,13 +1449,13 @@
     leave(cur);
     setTimeout(() => { cur.classList.remove('is-behind'); next.classList.remove('is-front'); }, 420);
   }
-  STEPS.forEach(el => {
+  ALL_STEPS.forEach(el => {
     el.insertAdjacentHTML('beforeend',
       '<button class="tapzone tapzone--prev" aria-label="이전 장"></button><button class="tapzone tapzone--next" aria-label="다음 장"></button>');
     el.querySelector('.tapzone--prev').addEventListener('click', () => goStep(step - 1));
     el.querySelector('.tapzone--next').addEventListener('click', () => goStep(step + 1));
   });
-  function hideSteps() { stopAuto(); STEPS.forEach(el => el.classList.add('is-hidden')); step = 0; }
+  function hideSteps() { stopAuto(); ALL_STEPS.forEach(el => el.classList.add('is-hidden')); step = 0; }
 
   $('cover-open').addEventListener('click', () => {
     navigator.vibrate?.(10);
@@ -1405,8 +1506,20 @@
   // PC에서 볼 때나 기본 공유를 쓸 수 없을 때는 iOS 공유 시트 캡처(Figma 09)를 보여 줌.
   const iosSheet = $('ios-sheet');
   let shareFile = null;
-  fetch('../assets/share/card-no01.png').then(r => r.blob())
-    .then(b => { shareFile = new File([b], '2026-12월-실록-덩찌.png', { type: 'image/png' }); }).catch(() => {});
+  // 결과 카드 이미지를 미리 만들어 둠 (공유 버튼을 누른 순간 바로 기본 공유하기를 띄우려고)
+  async function makeShareFile() {
+    const key = RESULT.no, card = track.children[TARGET];
+    shareFile = null;
+    let blob = null;
+    try {
+      if (window.html2canvas && card) {
+        const canvas = await html2canvas(card, { scale: 3, backgroundColor: null, logging: false });
+        blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      }
+    } catch (e) { blob = null; }
+    if (!blob && key === 'No.01') blob = await fetch('../assets/share/card-no01.png').then(r => r.blob()).catch(() => null);
+    if (blob && RESULT.no === key) shareFile = new File([blob], `2026-12월-실록-덩찌-${key}.png`, { type: 'image/png' });
+  }
   function openIosSheet() {
     iosSheet.classList.remove('is-hidden');
     void iosSheet.offsetWidth;
@@ -1470,6 +1583,63 @@
       if (b.classList.contains('header__close') && screen.classList.contains('is-revealed')) showMypage();
       else showHome();
     }));
+
+  // ---------- 조건 적용: 03 시간대 · 04 퀴즈 일수 · 05 밥그릇 2상태 · 06 건너뛰기 · 08 덩찌 ----------
+  function applyCond() {
+    ACTIVE_TIME = COND.time;
+    applyResult();
+    $('story-quiz').querySelector('.story__title').innerHTML = `오늘의 퀴즈는<br><em>${COND.quiz}일</em> 풀었소`;
+    const sura = COND.bowl >= BOWL_MIN, bowl = $('story-bowl'), ch = bowl.querySelector('.story__char');
+    bowl.querySelector('.story__title').innerHTML = `밥은 <em>${COND.bowl}그릇</em>을<br>먹였구만!`;
+    bowl.querySelector('.story__sub').textContent = sura ? '임금님 수라상이 따로 없구먼' : '조금만 더 챙겨 주면 좋겠소';
+    bowl.querySelector('.story__bubble-box').textContent = sura ? '맛이 좋구먼' : '한 그릇만 주시게..';
+    ch.src = sura ? '../assets/story/bowl-character.gif' : '../assets/story/bowl-character-hungry.png';
+    ch.alt = sura ? '밥을 먹는 덩찌' : '배고픈 덩찌';
+    $('story-rank').querySelector('.story__title').innerHTML = `<em>${COND.era} ${COND.rankNo}위</em>라는<br>성과를 달성하였소`;
+    STEPS = COND.ranked ? ALL_STEPS : ALL_STEPS.slice(0, 3);   // 미참여면 06 없이 05 → 07
+    screen.classList.toggle('no-rank', !COND.ranked);
+  }
+  applyCond();
+
+  const condForm = $('cond'), F = condForm.elements;
+  ERAS.forEach(e => F.era.add(new Option(e, e)));
+  const pad2 = n => String(n).padStart(2, '0');
+  function readForm() {
+    const n = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(+v || 0)));
+    return { time: F.time.value || 'morning', bowl: n(F.bowl.value, 0, 999), quiz: n(F.quiz.value, 0, 31),
+             ranked: F.ranked.checked, era: F.era.value, rankNo: n(F.rankNo.value, 1, 999) };
+  }
+  function previewCond() {
+    const c = readForm(), d = pickDungzzi(c);
+    $('cond-bowl-type').textContent = c.bowl >= BOWL_MIN ? '수라상형' : '소박형';
+    $('cond-quiz-type').textContent = c.quiz >= QUIZ_MIN ? '부지런형' : '느긋형';
+    F.era.disabled = F.rankNo.disabled = !c.ranked;
+    $('cond-result').innerHTML = `결과: <b>No.${pad2(d.no)}</b> ${d.name.replace('<br>', ' ')}` + (c.ranked ? '' : '<br>06 도전 장원급제 화면 건너뜀');
+  }
+  function fillForm() {
+    F.time.value = COND.time; F.bowl.value = COND.bowl; F.quiz.value = COND.quiz;
+    F.ranked.checked = COND.ranked; F.era.value = COND.era; F.rankNo.value = COND.rankNo;
+    previewCond();
+  }
+  function syncUrl() {
+    try {
+      const u = new URL(location.href), q = u.searchParams;
+      Object.entries({ time: COND.time, bowl: COND.bowl, quiz: COND.quiz, ranked: COND.ranked ? 1 : 0, era: COND.era, rankNo: COND.rankNo })
+        .forEach(([k, v]) => q.set(k, v));
+      q.delete('line');
+      history.replaceState(null, '', u);
+    } catch (e) {}
+  }
+  condForm.addEventListener('input', previewCond);
+  condForm.addEventListener('submit', e => {
+    e.preventDefault();
+    Object.assign(COND, readForm());
+    applyCond(); syncUrl();
+    condForm.hidden = true;
+    start();
+  });
+  $('cond-open').addEventListener('click', () => { if (condForm.hidden) fillForm(); condForm.hidden = !condForm.hidden; });
+  $('cond-close').addEventListener('click', () => { condForm.hidden = true; });
 
   const startAt = new URLSearchParams(location.search).get('start');
   const start = PAGE === 'result' ? showResult : PAGE === 'time' ? startTime : PAGE === 'mypage' ? showMypage
