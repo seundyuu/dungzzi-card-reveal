@@ -5,7 +5,7 @@
 | 페이지 | 링크 | 내용 |
 |---|---|---|
 | 전체 흐름 | https://seundyuu.github.io/dungzzi-card-reveal/ | 첫 진입 팝업 → 표지 → 주요 공부 시간 → 셔플 → 결과 공개 |
-| 첫 진입 팝업 | https://seundyuu.github.io/dungzzi-card-reveal/popup.html | 홈 위 바텀시트만 (「펼쳐보기」는 표지로 이동) |
+| 첫 진입 팝업 | https://seundyuu.github.io/dungzzi-card-reveal/popup.html | 홈 위 바텀시트만 (「실록 보러가기」는 표지로 이동) |
 | 표지 | https://seundyuu.github.io/dungzzi-card-reveal/cover.html | 표지부터 (「펼쳐보기」는 주요 공부 시간으로 이동) |
 | 주요 공부 시간 — 아침 | https://seundyuu.github.io/dungzzi-card-reveal/time-morning.html | 아침 버전 |
 | 주요 공부 시간 — 오후 | https://seundyuu.github.io/dungzzi-card-reveal/time-afternoon.html | 오후 버전 |
