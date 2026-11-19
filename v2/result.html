@@ -1,0 +1,1435 @@
+<!doctype html>
+<html lang="ko" data-page="result">
+<head>
+<!-- v2: 07 스켈레톤·08 결과 변경 버전. 원본은 v2 브랜치, 이 폴더는 배포용 복사본 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>월간리포트 — 덩찌 결과</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --white: #ffffff;
+    --gray-100: #171717;
+    --gray-200: #333333;
+    --gray-300: #555555;
+    --gray-600: #dfdfdf;
+    --gray-700: #ececec;
+    --gray-800: #f4f4f4;
+    --gray-900: #fbfbfb;
+    --text-strong: #1e1e1e;
+    --primary: #ff8a00;
+
+    --card-w: 272px;
+    --card-h: 330px;
+    --active-w: 296px;
+    --active-h: 358px;
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    background: #e6e4e0;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 24px 0;
+  }
+
+  /* ---------- Screen (375 × 812) ---------- */
+  .screen {
+    position: relative; width: 375px; height: 812px; overflow: hidden;
+    background: var(--bg); border-radius: 44px; isolation: isolate;
+  }
+  .screen > * { position: absolute; }
+
+  /* 공개 배경: #FFC422 → white (58%) + 스포트라이트 */
+  .bg-reveal {
+    inset: 0; z-index: -2;
+    background: linear-gradient(to bottom, #ffc422 0%, #ffffff 58.005%);
+    opacity: 0; transition: opacity .6s ease-out;
+  }
+  .spotlight {
+    z-index: -1; top: -121px; left: 50%; width: 605px; height: 605px;
+    transform: translateX(-50%); transform-origin: 50% 0;
+    opacity: 0; pointer-events: none;
+  }
+  .spotlight img { position: absolute; top: 0; left: 6.7%; }
+  .flash { inset: 0; z-index: 5; background: #fff; opacity: 0; pointer-events: none; }
+
+  .status-bar {
+    top: 0; left: 0; width: 375px; height: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 30px 0 50px;
+  }
+  .status-bar__time { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: var(--gray-200); }
+
+
+  .header {
+    top: 62px; left: 0; width: 375px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px 0 20px;
+  }
+  .header__title {
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: var(--gray-100);
+    transition: color .5s;
+  }
+  .header__close {
+    position: relative; width: 40px; height: 40px; border: 0; background: none; border-radius: 20px; padding: 0;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .header__close img { grid-area: 1 / 1; transition: opacity .5s; }
+  .header__close .is-light { opacity: 0; }
+  .is-revealed .header__title { color: var(--white); }
+  .is-revealed .header__close .is-dark { opacity: 0; }
+  .is-revealed .header__close .is-light { opacity: 1; }
+
+  .title {
+    top: 153px; left: 187px; transform: translateX(-50%);
+    font-weight: 700; font-size: 20px; line-height: 28px; letter-spacing: -0.2px;
+    color: var(--text-strong); text-align: center; white-space: nowrap;
+  }
+
+  .caption {
+    top: 717px; left: 187.5px; transform: translateX(-50%);
+    font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px;
+    color: var(--text-strong); white-space: nowrap; transition: opacity .25s;
+  }
+  .is-revealed .caption { opacity: 0; }
+
+  /* CTA: 하단 버튼 + 홈 인디케이터 */
+  .cta {
+    bottom: 0; left: 0; width: 375px; padding: 12px 20px 0;
+    display: flex; flex-direction: column; align-items: center; gap: 56px;
+  }
+  .end {
+    top: 735px; left: 50%; width: 335px; height: 48px; margin-left: -167.5px; padding: 0 10px;
+    border: 0; background: none; cursor: pointer;
+    font: 700 16px/22px "Pretendard", sans-serif; letter-spacing: -0.2px; color: var(--gray-300);
+    opacity: 0; pointer-events: none;
+  }
+  .cta__button {
+    width: 100%; height: 56px; border: 0; border-radius: 12px; padding: 14px 64px;
+    background: var(--primary); color: var(--gray-900); cursor: pointer;
+    font: 700 16px/22px "Pretendard", sans-serif; letter-spacing: -0.2px;
+    opacity: 0; transform: translateY(24px); pointer-events: none;
+  }
+  .cta__home { position: relative; width: 100%; height: 21px; }
+  .cta__home::after {
+    content: ""; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 139px; height: 5px; border-radius: 100px; background: #000;
+  }
+
+  /* ---------- Card carousel ---------- */
+  .stage { top: 237px; left: 0; width: 375px; height: var(--active-h); }
+  .track { position: absolute; top: 0; left: 0; height: 100%; will-change: transform; }
+
+  .card {
+    position: absolute; top: calc((var(--active-h) - var(--card-h)) / 2);
+    width: var(--card-w); height: var(--card-h);
+    background: var(--gray-900); border-radius: 19px;
+    overflow: hidden;
+    transition:
+      top .5s var(--ease-pop), width .5s var(--ease-pop), height .5s var(--ease-pop),
+      margin .5s var(--ease-pop), border-radius .5s var(--ease-pop),
+      transform .5s var(--ease-pop), opacity .4s;
+  }
+  /* 스트로크는 내용 위에 덮는 레이어로 (Figma inside-stroke와 동일, 레이아웃 영향 없음) */
+  .card::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    border: 1px solid var(--gray-600); border-radius: inherit;
+    opacity: 0; transition: opacity .3s;
+  }
+  .card.is-active::after { opacity: 1; }
+  .is-revealed .card.is-active::after { border-color: #ffb350; transition: none; }
+  .card.is-active {
+    top: 0; width: var(--active-w); height: var(--active-h);
+    margin-left: calc((var(--card-w) - var(--active-w)) / 2);
+    border-radius: 24px;
+  }
+  .card.is-prev { transform: translateX(calc((var(--card-w) - var(--active-w)) / 2)); }
+  .card.is-next { transform: translateX(calc((var(--active-w) - var(--card-w)) / 2)); }
+  .is-revealed .card:not(.is-active) { opacity: 0; }
+  /* 결과 카드 296 × 358. 흰 배경이 둥근 모서리 가장자리로 비치지 않도록 투명 처리 */
+  .is-revealed .card.is-active { background: transparent; }
+
+  /* 카드 내용 296 × 358 */
+  .card__body {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 12px 16px;
+  }
+
+  /* 스켈레톤 (분석 중) */
+  /* 셔플 중에도 모든 카드에 스켈레톤 표시. 296×358 레이아웃을 272×330 카드에 맞춰 축소(≈0.919) → 안착하면 1 */
+  .card__body--skeleton {
+    justify-content: flex-end;
+    inset: auto; left: 50%; top: 50%; width: var(--active-w); height: var(--active-h);
+    transform: translate(-50%, -50%) scale(calc(272 / 296));
+    transition: transform .5s var(--ease-pop);
+  }
+  .card.is-active .card__body--skeleton { transform: translate(-50%, -50%) scale(1); }
+  .is-revealed .card__body--skeleton { opacity: 0; }
+  .skel-head { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .skel { background: var(--gray-800); border-radius: 4px; }
+  .skel--name { width: 66px; height: 25px; }
+  .skel--sub { width: 154px; height: 17px; }
+  .skel--tile { width: 100%; height: 46px; border-radius: 14px; }
+  .skel--badge { position: absolute; left: 11px; top: 19px; width: 54px; height: 24px; border-radius: 100px; }
+  .is-analyzing .skel, .is-analyzing .silhouette { animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .silhouette {
+    width: 210px; height: 210px; background: var(--gray-700);
+    -webkit-mask: url("../assets/character.png") center / 210px 210px no-repeat;
+            mask: url("../assets/character.png") center / 210px 210px no-repeat;
+  }
+
+  /* 결과 */
+  .card__body--result {
+    background: linear-gradient(165.78deg, #ffbf10 4.54%, #fff2cf 87.22%);
+    gap: 4px;
+    visibility: hidden;
+  }
+  .is-revealed .card__body--result { visibility: visible; }
+  .result-top { width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .result-head {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    letter-spacing: -0.2px; white-space: nowrap; text-align: center;
+  }
+  .result-name { font-weight: 700; font-size: 18px; line-height: 25px; color: var(--text-strong); }
+  .result-desc { font-weight: 400; font-size: 12px; line-height: 17px; color: var(--gray-200); }
+  /* 220 영역에 이미지를 131.25%로 확대 배치 (Figma 크롭 값 그대로) */
+  .result-char { width: 220px; height: 220px; position: relative; }
+  .result-char img {
+    position: absolute; left: -15.63%; top: -15.63%;
+    width: 131.25%; height: 131.25%; max-width: none; display: block;
+  }
+
+  .badge {
+    position: absolute; left: 12px; top: 20px;
+    padding: 2px 8px; border-radius: 100px; background: rgba(255, 255, 255, .2);
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: var(--white);
+    white-space: nowrap;
+  }
+
+  .rarity {
+    top: 647px; left: 186px; transform: translateX(-50%);
+    font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px;
+    color: var(--text-strong); white-space: nowrap; opacity: 0;
+  }
+  .rarity__num { color: var(--primary); font-variant-numeric: tabular-nums; } /* CTA 버튼과 동일한 #FF8A00 */
+  .result-char .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  .result-char .burst i {
+    position: absolute; width: 8px; height: 8px; margin: -4px; border-radius: 50%; opacity: 0;
+  }
+
+  /* 한 줄 소개 타일 (Figma 282:5847) */
+  .result-quote {
+    width: 100%; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .7);
+    font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: var(--gray-300);
+    text-align: center; white-space: nowrap;
+  }
+  .tiles { width: 100%; display: flex; flex-direction: column; gap: 8px; letter-spacing: -0.2px; white-space: nowrap; }
+  .tiles__row { display: flex; gap: 8px; }
+  .tile {
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .7);
+  }
+  .tile__label { font-weight: 400; font-size: 12px; line-height: 17px; color: var(--gray-300); }
+  .tile__value { font-weight: 700; font-size: 18px; line-height: 25px; color: var(--gray-100); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Outside the phone ---------- */
+  .replay {
+    font: 600 14px/20px "Pretendard", sans-serif; color: var(--gray-100);
+    padding: 10px 18px; border-radius: 999px; border: 1px solid #cfccc6; background: #fff; cursor: pointer;
+  }
+  body.is-embed { background: transparent; padding: 0; min-height: 0; }
+  body.is-embed .replay { display: none; }
+
+  /* ---------- 첫 진입 팝업 (Figma 160:773) — 홈 화면 위에 바텀시트로 「12월 실록이 도착했네」 ---------- */
+  .popup { inset: 0; z-index: 60; background: #f7f5f2; overflow: hidden; transition: opacity .35s ease; }
+  .popup > * { position: absolute; }
+  .popup.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .popup.is-leaving { opacity: 0; pointer-events: none; }
+  .popup__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .popup__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #000; }
+  .popup__home-header { top: 48px; left: 0; width: 375px; height: 133px; border-bottom: 1px solid #ececec; box-shadow: 0 0 12px rgba(84,90,123,.25); clip-path: inset(0 -24px -24px -24px); overflow: hidden; }
+  .popup__menu { position: absolute; left: 20px; top: 11px; width: 30px; height: 30px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5.5px; }
+  .popup__menu img { display: block; width: 16px; height: 2.5px; margin: -1.25px 0; }
+  .popup__records { position: absolute; right: 0; top: 0; height: 52px; padding: 11px 20px; display: flex; gap: 8px; align-items: center; }
+  .popup__chip { height: 30px; padding: 0 12px; border-radius: 8px; background: #fbfbfb; display: flex; gap: 4px; align-items: center; font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; white-space: nowrap; }
+  .popup__chip img { display: block; }
+  .popup__chip--spoon { color: #8b8b8b; }
+  .popup__chip--spoon .popup__spoon { width: 16px; height: 16px; position: relative; }
+  .popup__chip--spoon .popup__spoon img { position: absolute; left: 2px; top: .5px; width: 12px; height: 15px; }
+  .popup__chip--day { color: #71b600; }
+  .popup__chip--coin { color: #fdb600; }
+  .popup__calendar { top: 100px; left: 0; width: 375px; padding: 14px 0 8px; display: flex; flex-direction: column; align-items: center; }
+  .popup__days { width: 100%; display: flex; gap: 37px; justify-content: center; font-size: 12px; line-height: 17px; letter-spacing: -0.2px; color: #555; }
+  .popup__dates { position: relative; width: 100%; padding: 8px 0; display: flex; gap: 22px; justify-content: center; }
+  .popup__dates span { position: relative; width: 26px; height: 26px; display: grid; place-items: center; font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #555; }
+  .popup__dates .is-today::after { content: ''; position: absolute; left: 23px; top: 0; width: 5px; height: 5px; background: url(../assets/popup/today-dot.svg) no-repeat; }
+  .popup__next { position: absolute; left: 341.5px; top: calc(50% - 7px); transform: translateY(-50%) rotate(180deg); width: 14px; height: 14px; }
+  .popup__bubble { top: 213px; left: 52px; width: 271px; display: flex; flex-direction: column; align-items: center; }
+  .popup__bubble-box { background: #fff; border-radius: 16px; padding: 12px 24px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .popup__bubble-box p { font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #555; white-space: nowrap; }
+  .popup__bubble-box span { background: #feefd1; border-radius: 8px; padding: 8px; font-weight: 700; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #ff8a00; }
+  .popup__bubble-tail { width: 21.651px; height: 16.5px; transform: rotate(180deg); position: relative; }
+  .popup__bubble-tail img { position: absolute; left: 0; top: 9.98%; width: 100%; height: 90.02%; }
+  .popup__home-char { left: 57px; top: 278px; width: 260px; height: 260px; object-fit: cover; }
+
+  .popup__sheet {
+    left: 0; bottom: 0; width: 375px; height: 347px; overflow: hidden;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(to bottom, #ffc629, #fff);
+    box-shadow: 0 -4px 12px rgba(44,44,44,.03), inset 0 0 0 1px #ececec;   /* 테두리가 안쪽 요소 위치를 밀지 않도록 inset 그림자로 */
+    transform: translateY(0); transition: transform .4s cubic-bezier(.22,1,.36,1);
+  }
+  .popup__sheet > * { position: absolute; }
+  .popup.is-closed .popup__sheet { transform: translateY(100%); transition-duration: .3s; transition-timing-function: cubic-bezier(.5,0,.75,0); }
+  .popup.is-reopening .popup__sheet { transition: none; }   /* 시트는 아래에서 올라오지 않고 바로 보임 */
+  .popup__spot { left: 50%; top: -121px; width: 333px; height: 257px; margin-left: -166.5px; }
+  .popup__texts { top: 24px; left: 0; width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center; white-space: nowrap; letter-spacing: -0.2px; }
+  .popup__texts h2 { font-weight: 700; font-size: 20px; line-height: 28px; color: #171717; }
+  .popup__texts p { font-size: 16px; line-height: 22px; color: #555; }
+  .popup__figure { top: 78px; left: calc(50% + .5px); margin-left: -80px; width: 160px; height: 160px; }
+  .popup__figure > * { position: absolute; }
+  .popup__figure-shadow { left: 28px; top: 123px; width: 106px; height: 23px; }
+  .popup__silhouette { left: -23.505px; top: -34px; width: 211px; height: 211px; background: #fbfbfb;
+    -webkit-mask: url(../assets/popup/silhouette-mask.png) 0 0 / 211px 211px no-repeat; mask: url(../assets/popup/silhouette-mask.png) 0 0 / 211px 211px no-repeat; }
+  .popup__question { left: 69px; top: 53.274px; width: 22.716px; height: 37.839px; }
+  .popup__cta { left: 0; bottom: 0; width: 375px; padding: 12px 20px 0; display: flex; flex-direction: column; gap: 32px; align-items: center; }
+  .popup__open { width: 100%; height: 56px; border: 0; border-radius: 12px; background: #ff8a00; color: #fbfbfb; font: inherit; font-weight: 700; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; cursor: pointer; }
+  .popup__open:active { transform: scale(.98); }
+  .popup__indicator { position: relative; width: 100%; height: 21px; }
+  .popup__indicator::after { content: ''; position: absolute; left: 50%; bottom: 8px; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+  .popup__close { left: 319px; top: 16px; width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+  .popup__reopen { left: 0; right: 0; bottom: 120px; text-align: center; font-size: 12px; line-height: 17px; color: #8b8b8b; opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+  .popup.is-closed .popup__reopen { opacity: 1; transition-delay: .3s; }
+
+  .popup.is-entering .popup__spot { animation: timeFade .6s ease-out .2s both; }
+  .popup.is-entering .popup__figure { animation: popupBob .6s cubic-bezier(.34,1.56,.64,1) .3s both; }
+  .popup__question { animation: popupQ 2.4s ease-in-out 1.6s infinite; transform-origin: 50% 100%; }
+  @keyframes popupBob { from { opacity: 0; transform: translateY(16px) scale(.9); } to { opacity: 1; transform: none; } }
+  @keyframes popupQ { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(-10deg); } 86% { transform: rotate(8deg); } 93% { transform: rotate(-4deg); } }
+  @media (prefers-reduced-motion: reduce) { .popup *, .popup { animation: none !important; transition: none !important; } }
+
+  /* ---------- 표지 (Figma 142:453) — 셔플 화면 위에 덮였다가 「펼쳐보기」로 걷힘 ---------- */
+  .cover { inset: 0; z-index: 50; background: #f7f5f2; overflow: hidden; transition: opacity .45s ease; }
+  .cover > * { position: absolute; }
+  .cover.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .cover.is-leaving { opacity: 0; pointer-events: none; }
+  .cover__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .cover__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #333; }
+  .cover__header { top: 62px; left: 0; width: 375px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .cover__header p { font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #333; }
+  .cover__close { width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+  .cover__titles { top: 124px; left: 0; width: 375px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; white-space: nowrap; }
+  .cover__to { font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #6d6257; }
+  .cover__title { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: -0.4px; color: #2a2520; }
+  .cover__title em { font-style: normal; color: #ff8a00; }
+  .cover__lede { font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #6d6257; }
+  .cover__card {
+    top: 238px; left: 68px; width: 240px; padding: 20px 12px; overflow: hidden;
+    background: #fff; border: 1px solid #dfdfdf; border-radius: 24px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .cover__silhouette {
+    width: 160px; height: 160px; background: #dfdfdf;
+    -webkit-mask: url("../assets/cover-silhouette.png") center / 160px 160px no-repeat;
+            mask: url("../assets/cover-silhouette.png") center / 160px 160px no-repeat;
+  }
+  .cover__caption { font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #6d6257; text-align: center; white-space: nowrap; }
+  .cover__chip { position: absolute; left: 11px; top: 19px; padding: 2px 8px; border-radius: 100px; background: #feefd1;
+    font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #ff8a00; }
+  .cover__seal { left: 264.28px; top: 332.86px; width: 81.779px; height: 81.779px; display: grid; place-items: center; }
+  .cover__seal img { display: block; transform: rotate(15deg); filter: url(#cover-ink); mix-blend-mode: multiply; }
+  .cover__toc { top: 512px; left: 36px; width: 304px; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .cover__toc li { display: flex; align-items: center; gap: 16px; padding: 9px 0; border-bottom: 1px solid #dfdfdf;
+    font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #333; white-space: nowrap; }
+  .cover__toc li:last-child { padding: 8px 0; border-bottom: 0; }
+  .cover__toc .num { color: #ef523d; }
+  .cover__cta { left: 0; bottom: 0; width: 375px; padding: 12px 20px 0; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+  .cover__button { width: 100%; height: 56px; border: 0; border-radius: 12px; background: #ff8a00; color: #fbfbfb; cursor: pointer;
+    font: 700 16px/22px "Pretendard", sans-serif; letter-spacing: -0.2px; }
+  .cover__home { position: relative; width: 100%; height: 21px; }
+  .cover__home::after { content: ""; position: absolute; bottom: 8px; left: 50%; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 표지 등장 */
+  .cover.is-entering .cover__titles { animation: coverRise .5s cubic-bezier(.22,1,.36,1) .1s both; }
+  .cover.is-entering .cover__card { animation: coverCard .6s cubic-bezier(.34,1.56,.64,1) .25s both; }
+  .cover.is-entering .cover__toc li { animation: coverRise .45s cubic-bezier(.22,1,.36,1) both; }
+  .cover.is-entering .cover__toc li:nth-child(1) { animation-delay: .5s; }
+  .cover.is-entering .cover__toc li:nth-child(2) { animation-delay: .58s; }
+  .cover.is-entering .cover__toc li:nth-child(3) { animation-delay: .66s; }
+  .cover.is-entering .cover__toc li:nth-child(4) { animation-delay: .74s; }
+  .cover.is-entering .cover__seal { animation: coverStamp .42s cubic-bezier(.5,0,.75,0) 1.05s both; }
+  .cover.is-entering .cover__cta { animation: coverRise .5s cubic-bezier(.22,1,.36,1) 1.25s both; }
+  /* 「펼쳐보기」: 카드가 앞으로 나오며 셔플로 넘어감 */
+  .cover.is-leaving .cover__card { transition: transform .45s cubic-bezier(.22,1,.36,1); transform: translateY(-20px) scale(1.2); }
+  @keyframes coverRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes coverCard { from { opacity: 0; transform: translateY(24px) scale(.92); } to { opacity: 1; transform: none; } }
+  @keyframes coverStamp { 0% { opacity: 0; transform: scale(2.2) rotate(-25deg); } 60% { opacity: 1; transform: scale(.92) rotate(4deg); } 100% { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .cover, .cover * { animation: none !important; transition: none !important; } }
+
+  /* ---------- 주요 공부 시간 (Figma 229:1502 아침 · 229:7510 오후 · 231:1247 밤) — 표지 다음 장 ---------- */
+  .time { inset: 0; z-index: 40; overflow: hidden; cursor: pointer; transition: opacity .4s ease; }
+  .time > * { position: absolute; }
+  .time.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .time.is-leaving { opacity: 0; pointer-events: none; }
+  .time[data-time="morning"]   { background: linear-gradient(to bottom, #cae8fd 0%, #fff 58.005%); }
+  .time[data-time="afternoon"] { background: linear-gradient(to bottom, #fbeb97 0%, #fff 58.005%); }
+  .time[data-time="night"]     { background: linear-gradient(to bottom, #213f7a 0%, #fff 58.005%); }
+  .time [data-only]:not([data-only~="all"]) { display: none; }
+  .time[data-time="morning"]   [data-only~="morning"],
+  .time[data-time="afternoon"] [data-only~="afternoon"],
+  .time[data-time="night"]     [data-only~="night"] { display: block; }
+
+  /* 산 그림 — SVG 안쪽 여백(획 두께)만큼 바깥으로 */
+  .time__mtn img { position: absolute; display: block; max-width: none; }
+  .time__mtn--morning   { left: -37px; top: 182px; width: 484.17px; height: 227.92px; transform: scaleX(-1); }
+  .time__mtn--morning img   { top: -0.49%; left: -0.23%; width: 100.46%; height: 100.98%; }
+  .time__mtn--afternoon { left: -71px; top: 201.65px; width: 420px; height: 197.27px; }
+  .time__mtn--afternoon img { top: -0.57%; left: -0.27%; width: 100.54%; height: 101.14%; }
+  .time__mtn--night     { left: -41px; top: 234px; width: 442px; height: 186px; }
+  .time__mtn--night img     { top: -0.6%; left: -0.25%; width: 100.5%; height: 101.2%; }
+
+  .time__sun--morning   { left: 68px; top: 165px; }
+  .time__cloud          { left: 115px; top: 191px; }
+  .time__sun--afternoon { left: 143px; top: 123px; }
+  .time__moon           { left: 190px; top: 131px; }
+  .time__shadow         { left: 126px; top: 460px; }
+  .time__char { left: 48px; top: 254px; width: 280px; height: 280px; object-fit: cover; }
+
+  /* 스토리 진행 표시 (11칸 중 2칸) */
+  .time__progress { left: 16px; top: 52px; width: 343px; display: flex; gap: 4px; }
+  .time__progress i { flex: 1 0 0; height: 3px; border-radius: 3px; }
+  .time__progress i.is-on { background: rgba(255, 255, 255, .6); }
+
+  .time__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .time__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #333; }
+  .time__header { top: 62px; left: 0; width: 375px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .time__header p { font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #333; }
+  .time__header button { width: 40px; height: 40px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+
+  .time__text { left: 74px; top: 538px; width: 227px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: #333; }
+  .time__title { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: -0.4px; }
+  .time__title em { font-style: normal; color: #ff8a00; }
+  .time__sub { font-size: 16px; line-height: 22px; letter-spacing: -0.2px; white-space: nowrap; }
+  .time__home { left: 50%; bottom: 8px; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 등장: 해·달이 떠오르고 → 산 → 캐릭터 → 문구 */
+  .time.is-entering .time__sun--morning,
+  .time.is-entering .time__sun--afternoon,
+  .time.is-entering .time__moon  { animation: timeSky .9s cubic-bezier(.22,1,.36,1) .1s both; }
+  .time.is-entering .time__cloud { animation: timeCloud 1.1s cubic-bezier(.22,1,.36,1) .25s both; }
+  .time.is-entering .time__mtn   { animation: timeFade .8s ease-out both; }
+  .time.is-entering .time__char,
+  .time.is-entering .time__shadow { animation: timePop .6s cubic-bezier(.34,1.56,.64,1) .35s both; }
+  .time.is-entering .time__title { animation: timeRise .5s cubic-bezier(.22,1,.36,1) .6s both; }
+  .time.is-entering .time__sub   { animation: timeRise .5s cubic-bezier(.22,1,.36,1) .75s both; }
+  @keyframes timeSky   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  @keyframes timeCloud { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes timeFade  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes timePop   { from { opacity: 0; transform: translateY(20px) scale(.94); } to { opacity: 1; transform: none; } }
+  /* ===== 03/시간 업데이트 — 새 요소 (Figma 239:2599, 229:7510, 231:1247) ===== */
+  /* 말풍선: 세 시간대 모두 가로 가운데, top 213 */
+  .time__bubble { left: 0; top: 213px; width: 375px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; }
+  .time__bubble-box { background: #fff; border-radius: 16px; padding: 12px 24px; font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #555; white-space: nowrap; text-align: center; }
+  .time__bubble-tail { width: 21.651px; height: 16.5px; transform: rotate(180deg); position: relative; }
+  .time__bubble-tail img { position: absolute; left: 0; top: 9.98%; width: 100%; height: 90.02%; display: block; }
+  /* 하단 힌트: 문구 묶음(top 538, 높이 110) + 간격 72 → top 720 */
+  .time__hint { left: 0; top: 720px; width: 375px; text-align: center; font-size: 12px; line-height: 17px; letter-spacing: -0.2px; color: #8b8b8b; white-space: nowrap; }
+
+  /* 아침(239:2599)에서 위치가 바뀐 기존 요소 — 덮어쓰기 */
+  .time[data-time="morning"] .time__char { top: 258px; }        /* 기존 254 */
+  .time__sun--morning { left: 39px; top: 127px; }                 /* 기존 68/165 */
+  .time__cloud        { left: 86px; top: 153px; }                 /* 기존 115/191 */
+
+  /* 등장 연출 */
+  .time.is-entering .time__bubble { animation: timeBubble .5s cubic-bezier(.34,1.56,.64,1) .8s both; }
+  .time__hint, .story__hint { animation: hintBlink 1.6s ease-in-out infinite; }
+  @keyframes hintBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  .time.is-entering .time__hint   { animation: timeFade .6s ease-out 1.1s both, hintBlink 1.6s ease-in-out 1.7s infinite; }
+  @keyframes timeBubble { from { opacity: 0; transform: translateY(8px) scale(.85); } to { opacity: 1; transform: none; } }
+
+  /* ===== 실록 이야기 장 (퀴즈 · 밥그릇 · 랭킹) — Figma 239:2456 / 239:2501 / 239:2544 ===== */
+  .story { position: absolute; inset: 0; overflow: hidden; cursor: pointer; transition: opacity .4s ease; }
+  .story > * { position: absolute; }
+  .story.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .story.is-leaving { opacity: 0; pointer-events: none; }
+  .story[data-story="quiz"] { background: linear-gradient(to bottom, #c0e697 0%, #fff 50%, #fff 100%); }
+  .story[data-story="bowl"] { background: linear-gradient(to bottom, #ffdf9b 0%, #fff 50%, #fff 100%); }
+  .story[data-story="rank"] { background: linear-gradient(to bottom, #f9e0e3 0%, #fff 50%, #fff 100%); }
+
+  /* 상태바 (9:41 · 아이콘 모두 흰색) */
+  .story__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; }
+  .story__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #fff; }
+  .story__status img { display: block; }
+
+  /* 진행 바 4칸 (Figma 최신: bar 82.75×3, gap 4, 채움 rgba(255,255,255,.6)) */
+  .story__progress { left: 16px; top: 52px; width: 343px; display: flex; gap: 4px; }
+  .story__progress i { flex: 1 0 0; height: 3px; border-radius: 3px; }
+  .story__progress i.is-on { background: rgba(255, 255, 255, .6); }
+
+  /* 헤더 */
+  .story__header { top: 62px; left: 0; width: 375px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .story__header p { font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #333; }
+  .story__header button { width: 40px; height: 40px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+  .story__header button img { display: block; }
+
+  /* 캐릭터 */
+  /* 스토리 배경 그래픽 (Figma 160:1415 — 한옥·소반·굴비·산/구름/소나무) */
+  .story__art { overflow: hidden; pointer-events: none; }
+  .story__art span { position: absolute; display: block; }
+  .story__art img { display: block; width: 100%; height: 100%; max-width: none; }
+  .story__art--fade { left: -12px; top: 330.58px; width: 400px; height: 157.422px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 45%, #fff 100%); }
+  .story__char { left: 47px; top: 258px; width: 280px; height: 280px; object-fit: cover; }
+
+  /* 말풍선 (가운데 정렬, 꼬리 아래) */
+  .story__bubble { left: 0; top: 213px; width: 375px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; }
+  .story__bubble-box { background: #fff; border-radius: 16px; padding: 12px 24px; font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: #555; white-space: nowrap; text-align: center; }
+  .story[data-story="quiz"] .story__bubble-box { width: 151px; } /* Figma: 퀴즈 장만 박스 폭 151 고정 */
+  .story__bubble-tail { width: 21.651px; height: 16.5px; transform: rotate(180deg); position: relative; }
+  .story__bubble-tail img { position: absolute; left: 0; top: 9.98%; width: 100%; height: 90.02%; display: block; }
+
+  /* 문구 */
+  .story__text { left: 0; top: 538px; width: 375px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: #333; white-space: nowrap; }
+  .story__title { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: -0.4px; }
+  .story__title em { font-style: normal; color: #ff8a00; }
+  .story__sub { font-size: 16px; line-height: 22px; letter-spacing: -0.2px; }
+  .story__hint { left: 0; top: 720px; width: 375px; text-align: center; font-size: 12px; line-height: 17px; letter-spacing: -0.2px; color: #8b8b8b; white-space: nowrap; }
+
+  .story__home { left: 50%; bottom: 8px; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 등장 연출 */
+  .story.is-entering .story__char   { animation: storyPop .6s cubic-bezier(.34,1.56,.64,1) .15s both; }
+  .story.is-entering .story__bubble { animation: storyBubble .5s cubic-bezier(.34,1.56,.64,1) .55s both; }
+  .story.is-entering .story__title  { animation: storyRise .5s cubic-bezier(.22,1,.36,1) .4s both; }
+  .story.is-entering .story__sub    { animation: storyRise .5s cubic-bezier(.22,1,.36,1) .55s both; }
+  .story.is-entering .story__hint   { animation: storyFade .6s ease-out 1s both, hintBlink 1.6s ease-in-out 1.6s infinite; }
+  @keyframes storyPop    { from { opacity: 0; transform: translateY(20px) scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes storyBubble { from { opacity: 0; transform: translateY(8px) scale(.85); } to { opacity: 1; transform: none; } }
+  @keyframes storyRise   { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes storyFade   { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .story, .story * { animation: none !important; transition: none !important; } }
+
+  .story { z-index: 45; }
+  /* 이전 장 / 다음 장 터치 영역 (Figma 239:1607): 헤더 아래부터 화면 끝까지, 왼쪽 113 · 오른쪽 263 */
+  .time.is-behind, .story.is-behind { opacity: 1 !important; z-index: 47 !important; transition: none !important; }
+  .time.is-front, .story.is-front { z-index: 48 !important; }
+  /* 인스타 스토리처럼 자동 넘김: 현재 칸이 AUTO_MS 동안 채워진 뒤 다음 장 */
+  .time__progress i, .story__progress i { position: relative; overflow: hidden; }
+  .time__progress i.is-current::after, .story__progress i.is-current::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: rgba(255, 255, 255, .6); transform-origin: 0 50%; animation: progFill var(--auto-ms, 5s) linear both; }
+  @keyframes progFill { from { transform: scaleX(0); } to { transform: none; } }
+  .tapzone { position: absolute; top: 106px; height: 706px; padding: 0; border: 0; background: transparent; cursor: pointer; z-index: 5; -webkit-tap-highlight-color: transparent; }
+  .tapzone--prev { left: 0; width: 113px; }
+  .tapzone--next { left: 112px; width: 263px; }
+
+  /* ---------- 공유 시트 (Figma 239:2372) — 결과 화면 위 오버레이 ---------- */
+  .share-sheet { position: absolute; inset: 0; overflow: hidden; transition: opacity .3s ease; }
+  .share-sheet > * { position: absolute; }
+  .share-sheet.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .share-sheet.is-leaving { opacity: 0; pointer-events: none; }
+  /* Figma에는 딤 색이 없음(배경 그대로) → 투명 클릭 영역만 (탭하면 닫기) */
+  .share-sheet__dim { inset: 0; background: transparent; }
+  /* 시트: Figma 시트 영역 380×237 @(-3, 611), r18. Figma에는 참고용 캡처 이미지가 들어 있어 자체 UI로 구성 */
+  .share-sheet__panel { left: -3px; top: 611px; width: 380px; height: 237px; border-radius: 18px; background: #fff; box-shadow: 0 -4px 16px rgba(44,44,44,.08); transition: transform .4s cubic-bezier(.22,1,.36,1); }
+  .share-sheet__panel > * { position: absolute; }
+  .share-sheet__close { left: 7px; top: 5px; width: 40px; height: 40px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+  .share-sheet__title { pointer-events: none; left: 0; top: 15px; width: 100%; text-align: center; font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #8b8b8b; }
+  .share-sheet__actions { left: 24px; top: 60px; display: flex; gap: 20px; }
+  .share-sheet__action { width: 64px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font: 600 12px/17px "Pretendard", sans-serif; letter-spacing: -0.2px; color: #555; -webkit-tap-highlight-color: transparent; }
+  .share-sheet__icon { width: 52px; height: 52px; border-radius: 50%; background: #f4f4f4; display: grid; place-items: center; transition: transform .15s; }
+  .share-sheet__icon--story { background: #ff8a00; }
+  .share-sheet__action:active .share-sheet__icon { transform: scale(.92); }
+  .share-sheet__action:focus-visible, .share-sheet__close:focus-visible { outline: 2px solid #ff8a00; outline-offset: 2px; border-radius: 12px; }
+  .share-sheet__toast { left: 0; top: 152px; width: 100%; text-align: center; font-size: 12px; line-height: 17px; color: #ff8a00; opacity: 0; transition: opacity .2s; }
+  .share-sheet__toast.is-on { opacity: 1; }
+
+  .share-sheet.is-entering .share-sheet__panel { animation: shareSheetUp .4s cubic-bezier(.22,1,.36,1) both; }
+  .share-sheet.is-leaving .share-sheet__panel { transform: translateY(100%); }
+  @keyframes shareSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+
+  /* 결과 화면 쪽 변화 (239:2323 → 239:2372): 타이틀·희귀도·CTA·스포트라이트 사라지고 카드가 축소·상승.
+     카드 296×439 @(39.5, 184) → 264×392 @(56, 160): scale 264/296 = .8919, 위로 24px, 가로 중심 187.5 → 188.
+     WAAPI(fill) 로 opacity가 고정돼 있어 !important 로 덮음 */
+  .screen .stage { transform-origin: 187.5px 0; transition: transform .45s cubic-bezier(.22,1,.36,1); }
+  .screen.is-sharing .stage { transform: translate(.5px, -24px) scale(.8919); }
+  .screen .title, .screen .rarity, .screen .cta, .screen .end, .screen .spotlight { transition: opacity .3s ease, visibility .3s; }
+  .screen.is-sharing .title,
+  .screen.is-sharing .rarity,
+  .screen.is-sharing .cta,
+  .screen.is-sharing .end,
+  .screen.is-sharing .spotlight { opacity: 0 !important; visibility: hidden; pointer-events: none; }
+
+  @media (prefers-reduced-motion: reduce) { .share-sheet, .share-sheet *, .screen.is-sharing .stage { animation: none !important; transition: none !important; } }
+
+  /* ---------- 마이페이지 (Figma 239:2708 m/ranking/home, 375×919 → 812 화면에서 본문 스크롤) ---------- */
+  @font-face {
+    font-family: "ChosunCentennial";
+    src: local("ChosunCentennial"), local("Chosun Centennial"),
+         url("../fonts/ChosunCentennial/ChosunCentennial.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  .mypage { position: absolute; inset: 0; background: #f7f5f2; overflow: hidden; transition: opacity .35s ease; }
+  .mypage > * { position: absolute; }
+  .mypage.is-hidden { opacity: 0; visibility: hidden; transition: none; }
+  .mypage.is-leaving { opacity: 0; pointer-events: none; }
+  .mypage p, .mypage h2, .mypage ul { margin: 0; padding: 0; }
+  .mypage img { display: block; }
+
+  /* 고정 상단: 상태바(0–48) + 홈 헤더(48–100). Figma 헤더는 배경이 없지만 스크롤 시 본문이 비치지 않도록 페이지 배경색을 깔아둠 */
+  .mypage__status { top: 0; left: 0; width: 375px; height: 48px; padding: 4px 30px 0 50px; display: flex; align-items: center; justify-content: space-between; background: #f7f5f2; }
+  .mypage__status span { font-weight: 600; font-size: 17px; line-height: 17px; letter-spacing: -0.3px; color: #000; }
+  .mypage__header { top: 48px; left: 0; width: 375px; height: 52px; background: #f7f5f2; }
+  .mypage__menu { position: absolute; left: 20px; top: 11px; width: 30px; height: 30px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5.5px; filter: drop-shadow(0 0 3px rgba(84, 90, 123, .12)); }
+  .mypage__menu img { width: 16px; height: 2.5px; margin: -1.25px 0; }
+  .mypage__records { position: absolute; right: 0; top: 0; height: 52px; padding: 11px 20px; display: flex; gap: 8px; align-items: center; }
+  .mypage__chip { height: 30px; padding: 0 12px; border-radius: 8px; background: #fbfbfb; display: flex; gap: 4px; align-items: center; font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; white-space: nowrap; filter: drop-shadow(0 0 3px rgba(84, 90, 123, .12)); }
+  .mypage__chip--spoon { color: #8b8b8b; }
+  .mypage__spoon { position: relative; width: 16px; height: 16px; }
+  .mypage__spoon img { position: absolute; left: 2px; top: .5px; width: 12px; height: 15px; }
+  .mypage__chip--day { color: #71b600; }
+  .mypage__chip--coin { color: #fdb600; }
+
+  /* 스크롤 영역: 헤더 아래(100)부터 화면 끝까지. 본문 시작 112, 끝 여백 = GNB 90 + 20 → 최대 스크롤 107px (= 919 − 812) */
+  .mypage__scroll { top: 100px; left: 0; width: 375px; bottom: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .mypage__scroll::-webkit-scrollbar { display: none; }
+  .mypage__content { width: 335px; margin: 0 20px; padding: 12px 0 110px; display: flex; flex-direction: column; gap: 28px; box-sizing: content-box; }
+
+  /* 프로필 카드 335×205 */
+  .mypage__profile { background: #fff; border-radius: 16px; padding: 12px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .mypage__info { display: flex; gap: 8px; align-items: center; }
+  .mypage__avatar { position: relative; flex: none; width: 100px; height: 100px; }
+  .mypage__avatar-shadow { position: absolute; left: 17.21px; top: 86.93px; width: 65.4016px; height: 11.5901px; }
+  .mypage__avatar-img { position: absolute; left: -20.04px; top: -19.87px; width: 139.91px; height: 139.91px; max-width: none; object-fit: cover; }
+  .mypage__user { display: flex; flex-direction: column; gap: 8px; letter-spacing: -0.2px; white-space: nowrap; }
+  .mypage__name { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 20px; line-height: 28px; color: #000; }
+  .mypage__phone { font-weight: 400; font-size: 12px; line-height: 17px; color: #555; }
+  .mypage__rank { display: flex; flex-direction: column; letter-spacing: -0.2px; white-space: nowrap; }
+  .mypage__rank-name { font-weight: 700; font-size: 16px; line-height: 22px; color: #333; }
+  .mypage__rank-row { display: flex; align-items: center; justify-content: space-between; }
+  .mypage__rank-next { display: flex; gap: 2px; align-items: center; font-weight: 600; font-size: 14px; line-height: 20px; color: #555; }
+  .mypage__rank-next img { transform: rotate(180deg); }
+  .mypage__rank-count { padding: 4px 8px; border-radius: 8px; background: #fff5de; font-weight: 600; font-size: 11px; line-height: 15px; color: #ff8a00; }
+  .mypage__rank-bar { height: 20px; display: flex; align-items: center; }
+  .mypage__rank-track { position: relative; flex: 1; height: 8px; border-radius: 46px; background: #feefd1; opacity: .8; }
+  .mypage__rank-fill { position: absolute; left: 0; top: 0; width: 6px; height: 8px; border-radius: 62px; background: #ff8a00; }
+
+  /* 실록 배너 335×56 (클릭 → 리포트 다시 열기) */
+  .mypage__report { position: relative; display: block; width: 100%; height: 56px; padding: 0; border: 1px solid #c1c1c1; border-radius: 12px; background: #efe7d8; overflow: hidden; cursor: pointer; text-align: left; font: inherit; -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
+  .mypage__report:active { transform: scale(.98); }
+  .mypage__report:focus-visible { outline: 2px solid #ff8a00; outline-offset: 2px; }
+  .mypage__report-text { position: absolute; left: 19px; top: 14px; font-family: "ChosunCentennial", "Nanum Myeongjo", serif; font-weight: 400; font-size: 18px; line-height: 25px; letter-spacing: -0.2px; color: #171717; white-space: nowrap; }
+  .mypage__report-seal { position: absolute; left: 244px; top: -8px; width: 81.779px; height: 81.779px; display: grid; place-items: center; }
+  .mypage__report-seal img { width: 66.7719px; height: 66.7719px; transform: rotate(15deg); }
+
+  /* 섹션 공통 (학습 개요 / 뱃지) */
+  .mypage__group { display: flex; flex-direction: column; gap: 16px; }
+  .mypage__heading { font-weight: 700; font-size: 18px; line-height: 25px; letter-spacing: -0.2px; color: #000; }
+  .mypage__stats { display: flex; gap: 8px; }
+  .mypage__stat { flex: 1 0 0; min-width: 0; padding: 8px 12px; border-radius: 16px; background: #fff; display: flex; flex-direction: column; gap: 4px; letter-spacing: -0.2px; white-space: nowrap; }
+  .mypage__stat b { font-weight: 600; font-size: 16px; line-height: 22px; color: #000; }
+  .mypage__stat span { font-weight: 600; font-size: 14px; line-height: 20px; color: #555; }
+
+  /* 뱃지 카드 335×208: 4열 × 2행, 69×84 */
+  .mypage .mypage__badges { list-style: none; background: #fff; border-radius: 16px; padding: 16px 12px; display: grid; grid-template-columns: repeat(4, 69px); column-gap: 12px; row-gap: 8px; }
+  .mypage__badge { position: relative; width: 69px; height: 84px; overflow: hidden; display: flex; flex-direction: column; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: -0.2px; color: #8b8b8b; text-align: center; white-space: nowrap; }
+  .mypage__badge-art { position: relative; flex: none; width: 69px; height: 69px; }
+  .mypage__badge-art img { position: absolute; left: calc(50% + var(--dx, 0px)); top: calc(50% + var(--dy, 0px)); width: var(--w); height: var(--h, var(--w)); max-width: none; transform: translate(-50%, -50%); object-fit: cover; }
+  .mypage__badge.is-locked .mypage__badge-art { opacity: .2; }
+  .mypage__badge--1 img { --w: 107.678px; --dx: .5px; --dy: 4.71px; } /* Figma: 107.678 박스(+.5,+.5) 안에서 이미지 top 3.91%(4.21px) 오프셋 */
+  .mypage__badge--2 img { --w: 113px; --dx: .33px; --dy: 12px; }
+  .mypage__badge--3 img { --w: 101px; --dx: -.33px; --dy: 9px; }
+  .mypage__badge--4 img { --w: 102px; --dx: -4.5px; --dy: 10.5px; }
+  .mypage__badge--5 img { --w: 95px; --dy: 6px; }
+  .mypage__badge--6 img { --w: 92px; --dx: -.17px; --dy: 7.5px; }
+  .mypage__badge--7 img { --w: 95px; --h: 94px; --dx: .67px; --dy: 8.5px; }
+  .mypage__badge--8 img { --w: 102px; --h: 103px; --dx: -.5px; --dy: 2px; }
+  .mypage__badge-level { position: absolute; left: 40px; top: 41px; width: 20px; height: 20px; border: 1px solid #feefd1; border-radius: 50%; background: #ff8a00; display: grid; place-items: center; font-style: normal; font-weight: 600; font-size: 14px; line-height: 20px; color: #fff; }
+
+  /* GNB (고정, 화면 하단 90) */
+  .mypage__gnb { left: 0; bottom: 0; width: 375px; height: 90px; padding: 0 12px 24px; display: flex; background: #fbfbfb; box-shadow: inset 0 1px 0 #f4f4f4; }
+  .mypage__tab { flex: 1 0 0; min-width: 0; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-weight: 600; font-size: 11px; line-height: 15px; letter-spacing: -0.2px; color: #c1c1c1; white-space: nowrap; text-decoration: none; cursor: pointer; }
+  .mypage__tab--home { font-weight: 400; transform: translateY(-.5px); }
+  .mypage__tab.is-active { color: #171717; }
+  .mypage__tab-icon { position: relative; width: 26px; height: 26px; display: grid; place-items: center; }
+  .mypage__tab--home .mypage__tab-icon img { position: absolute; left: 1.25px; top: 2.875px; }
+  .mypage__home { left: 0; bottom: 0; width: 375px; height: 21px; pointer-events: none; }
+  .mypage__home::after { content: ""; position: absolute; bottom: 8px; left: 50%; width: 139px; height: 5px; margin-left: -69.5px; border-radius: 100px; background: #000; }
+
+  /* 등장 */
+  .mypage.is-entering .mypage__content > * { animation: mypageRise .45s cubic-bezier(.22,1,.36,1) both; }
+  .mypage.is-entering .mypage__content > :nth-child(2) { animation-delay: .06s; }
+  .mypage.is-entering .mypage__content > :nth-child(3) { animation-delay: .12s; }
+  .mypage.is-entering .mypage__content > :nth-child(4) { animation-delay: .18s; }
+  @keyframes mypageRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .mypage, .mypage * { animation: none !important; transition: none !important; } }
+
+  .share-sheet { z-index: 30; }
+  .mypage { z-index: 55; }
+  @keyframes timeRise  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .time, .time * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <main class="screen" id="screen" aria-label="2026 12월 실록 - 이번달 나의 덩찌">
+    <div class="bg-reveal"></div>
+    <div class="spotlight" id="spotlight"><img src="../assets/spotlight.svg" width="523.945" height="453.75" alt=""></div>
+
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <img src="../assets/icon-status.svg" width="74" height="13" alt="">
+    </div>
+
+    <header class="header">
+      <p class="header__title">2026 12월 실록</p>
+      <button class="header__close" aria-label="닫기">
+        <img class="is-dark" src="../assets/icon-close.svg" width="18" height="18" alt="">
+        <img class="is-light" src="../assets/icon-close-white.svg" width="18" height="18" alt="">
+      </button>
+    </header>
+
+    <h1 class="title" id="title">이번달 나의 덩찌는?</h1>
+
+    <div class="stage"><div class="track" id="track"></div></div>
+
+    <p class="caption" aria-live="polite">덩찌 분석중..</p>
+
+    <div class="cta">
+      <button class="cta__button" id="share">친구에게 공유하기</button>
+      <div class="cta__home"></div>
+    </div>
+    <button class="end" id="end" type="button">종료하기</button>
+
+    <div class="flash" id="flash"></div>
+    <!-- 공유 시트 (Figma 239:2372 위치 기준, 내용은 자체 UI) — 결과 화면(.screen) 위 오버레이. 열 때 .screen 에 .is-sharing 추가 -->
+    <div class="share-sheet is-hidden" id="share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-sheet-title">
+      <div class="share-sheet__dim" data-share-close></div>
+      <div class="share-sheet__panel">
+        <button class="share-sheet__close" id="share-sheet-close" type="button" aria-label="닫기" data-share-close>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <p class="share-sheet__title" id="share-sheet-title">12월 실록 공유하기</p>
+        <div class="share-sheet__actions">
+          <button class="share-sheet__action" type="button" data-share="story">
+            <span class="share-sheet__icon share-sheet__icon--story"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="#fff" stroke-width="2"/></svg></span>
+            <span>스토리</span>
+          </button>
+          <button class="share-sheet__action" type="button" data-share="save">
+            <span class="share-sheet__icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span>이미지 저장</span>
+          </button>
+          <button class="share-sheet__action" type="button" data-share="link">
+            <span class="share-sheet__icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span>링크 복사</span>
+          </button>
+          <button class="share-sheet__action" type="button" data-share="more">
+            <span class="share-sheet__icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8" fill="#333"/><circle cx="12" cy="12" r="1.8" fill="#333"/><circle cx="18" cy="12" r="1.8" fill="#333"/></svg></span>
+            <span>더보기</span>
+          </button>
+        </div>
+        <p class="share-sheet__toast" id="share-sheet-toast" aria-live="polite"></p>
+      </div>
+    </div>
+    <!-- 주요 공부 시간 (Figma 229:1502 / 229:7510 / 231:1247) — 화면을 누르면 다음 장(덩찌) -->
+    <section class="time is-hidden" id="time" data-time="morning" aria-label="이번 달 주요 공부 시간. 누르면 다음 장으로 넘어갑니다.">
+      <img class="time__shadow" data-only="night" src="../assets/time/night-shadow.svg" width="114" height="30" alt="">
+      <div class="time__mtn time__mtn--morning" data-only="morning"><img src="../assets/time/morning-mountains.svg" alt=""></div>
+      <div class="time__mtn time__mtn--afternoon" data-only="afternoon"><img src="../assets/time/afternoon-mountains.svg" alt=""></div>
+      <div class="time__mtn time__mtn--night" data-only="night"><img src="../assets/time/night-mountains.svg" alt=""></div>
+
+      <div class="time__progress" aria-hidden="true"><i class="is-on"></i><i></i><i></i><i></i></div>
+      <header class="time__header">
+        <p>2026 12월 실록</p>
+        <button aria-label="닫기"><img src="../assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="time__status"><span>9:41</span><img src="../assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <div class="time__home"></div>
+      <p class="time__hint">화면을 눌러 넘기기 &gt;</p>
+      <div class="time__bubble" aria-hidden="true">
+        <div class="time__bubble-box" id="time-bubble">피곤하구려..</div>
+        <div class="time__bubble-tail"><img src="../assets/popup/bubble-tail.svg" alt=""></div>
+      </div>
+
+      <img class="time__char" data-only="morning" src="../assets/time/morning-character.png" alt="아침에 일어난 덩찌">
+      <img class="time__char" data-only="afternoon" src="../assets/time/afternoon-character.gif" alt="책을 읽는 덩찌">
+      <img class="time__char" data-only="night" src="../assets/time/night-character.gif" alt="밤에 공부하는 덩찌">
+
+      <div class="time__text">
+        <p class="time__title">주로 <em id="time-word">아침</em>에<br>가장 많이 공부했다네</p>
+        <p class="time__sub" id="time-sub">일찍 일어나는 새가 벌레를 잡는다!</p>
+      </div>
+
+      <img class="time__sun--morning" data-only="morning" src="../assets/time/morning-sun.svg" width="74" height="74" alt="">
+      <img class="time__cloud" data-only="morning" src="../assets/time/morning-cloud.svg" width="78.167" height="43.593" alt="">
+      <img class="time__sun--afternoon" data-only="afternoon" src="../assets/time/afternoon-sun.svg" width="74" height="74" alt="">
+      <img class="time__moon" data-only="night" src="../assets/time/night-moon.svg" width="61.403" height="58.398" alt="">
+    </section>
+
+    <!-- 실록 이야기 장: 퀴즈 · 밥그릇 · 랭킹 (Figma 239:2456 / 239:2501 / 239:2544) -->
+    <section class="story is-hidden" id="story-quiz" data-story="quiz" aria-label="이번 달 오늘의 퀴즈 성과. 누르면 다음 장으로 넘어갑니다.">
+      <div class="story__art story__art--hanok" style="left:1px;top:205px;width:374px;height:232px;opacity:.6" aria-hidden="true"><span style="inset:78.06% 10.8% 7.1% 10.8%"><span style="inset:-2.61% -0.31% -2.61% -0.31%"><img src="../assets/story/bg/quiz/3482d.svg" alt=""></span></span><span style="inset:40.65% 16% 21.29% 16%"><span style="inset:-1.02% -0.2% -0.57% -0.2%"><img src="../assets/story/bg/quiz/f4afe.svg" alt=""></span></span><span style="inset:48.39% 20.2% 25.81% 20.2%"><span style="inset:-1.5% -0.4% -1.5% -0.4%"><img src="../assets/story/bg/quiz/174f8.svg" alt=""></span></span><span style="inset:32.94% 9.2% 55.48% 9.2%"><span style="inset:-3.35% -0.29% -3.35% -0.29%"><img src="../assets/story/bg/quiz/68ce5.svg" alt=""></span></span><span style="inset:12.58% 4.4% 61.29% 4.4%"><span style="inset:-1.48% -0.26% -1.48% -0.26%"><img src="../assets/story/bg/quiz/9a2af.svg" alt=""></span></span><span style="inset:13.94% 5.74% 61.29% 4.32%;-webkit-mask:url(../assets/story/bg/quiz/de10c.svg) 0.298px -3.143px/341.088px 60.619px no-repeat;mask:url(../assets/story/bg/quiz/de10c.svg) 0.298px -3.143px/341.088px 60.619px no-repeat"><span style="inset:-0.87% -0.15% -0.87% -0.15%"><img src="../assets/story/bg/quiz/ffa19.svg" alt=""></span></span><span style="inset:31.68% 88.48% 66% 10.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2f24a.svg" alt=""></span></span><span style="inset:32.74% 86.28% 64.94% 12.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2f24a.svg" alt=""></span></span><span style="inset:33.65% 84.08% 64.03% 14.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/f0946.svg" alt=""></span></span><span style="inset:34.39% 81.88% 63.29% 16.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:35% 79.68% 62.68% 18.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:35.52% 77.48% 62.16% 21.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:35.94% 75.28% 61.74% 23.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:36.26% 73.08% 61.42% 25.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:36.52% 70.88% 61.16% 27.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:36.71% 68.68% 60.97% 29.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:36.87% 66.48% 60.81% 32.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:37% 64.28% 60.68% 34.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:37.06% 62.08% 60.61% 36.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.13% 59.88% 60.55% 38.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:37.16% 57.68% 60.52% 40.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:37.19% 55.48% 60.48% 43.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:37.23% 53.28% 60.45% 45.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.23% 51.08% 60.45% 47.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.23% 48.88% 60.45% 49.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.23% 46.68% 60.45% 51.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.23% 44.48% 60.45% 54.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:37.19% 42.28% 60.48% 56.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:37.16% 40.08% 60.52% 58.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:37.1% 37.88% 60.58% 60.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:37.03% 35.68% 60.65% 62.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:36.94% 33.48% 60.74% 65.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:36.81% 31.28% 60.87% 67.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:36.65% 29.08% 61.03% 69.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:36.42% 26.88% 61.26% 71.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:36.13% 24.68% 61.55% 73.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:35.77% 22.48% 61.9% 76.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:35.32% 20.28% 62.35% 78.28%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/2543b.svg" alt=""></span></span><span style="inset:34.77% 18.08% 62.9% 80.48%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:34.13% 15.88% 63.55% 82.68%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:33.32% 13.68% 64.35% 84.88%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/c9a78.svg" alt=""></span></span><span style="inset:32.39% 11.48% 65.29% 87.08%"><span style="inset:-9.28% -9.28% -9.28% -9.28%"><img src="../assets/story/bg/quiz/d734f.svg" alt=""></span></span><span style="inset:8.71% 22% 86.29% 22%"><span style="inset:-7.76% -0.43% -7.76% -0.43%"><img src="../assets/story/bg/quiz/ec97b.svg" alt=""></span></span><span style="inset:10.48% 23.6% 88.71% 23.6%"><span style="inset:-26.72% -0.25% -26.72% -0.25%"><img src="../assets/story/bg/quiz/f4508.svg" alt=""></span></span><span style="inset:6.45% 77.2% 86.45% 19.96%"><span style="inset:-5.47% -8.47% -5.47% -8.47%"><img src="../assets/story/bg/quiz/9283d.svg" alt=""></span></span><span style="inset:6.45% 19.96% 86.45% 77.2%"><span style="inset:-5.47% -8.47% -5.47% -8.47%"><img src="../assets/story/bg/quiz/53936.svg" alt=""></span></span><span style="inset:92.9% 4% 3.87% 4%"><span style="inset:-12.03% -0.26% -6.68% -0.26%"><img src="../assets/story/bg/quiz/0ebe0.svg" alt=""></span></span></div>
+      <div class="story__progress" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i></i><i></i></div>
+      <header class="story__header">
+        <p>2026 12월 실록</p>
+        <button type="button" aria-label="닫기"><img src="../assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="story__status"><span>9:41</span><img src="../assets/story/icon-status-white.svg" width="74" height="13" alt=""></div>
+      <div class="story__text">
+        <p class="story__title">오늘의 퀴즈는<br><em>8회</em> 풀었소</p>
+        <p class="story__sub">조금 더 성실하게 정진하시게</p>
+      </div>
+      <p class="story__hint">화면을 눌러 넘기기 &gt;</p>
+      <img class="story__char" src="../assets/time/afternoon-character.gif" alt="책을 읽는 덩찌">
+      <div class="story__bubble" aria-hidden="true">
+        <div class="story__bubble-box">공부 힘들지?</div>
+        <div class="story__bubble-tail"><img src="../assets/popup/bubble-tail.svg" alt=""></div>
+      </div>
+      <div class="story__home"></div>
+    </section>
+
+    <section class="story is-hidden" id="story-bowl" data-story="bowl" aria-label="이번 달 밥그릇 먹인 횟수. 누르면 다음 장으로 넘어갑니다.">
+      <div class="story__art story__art--soban" style="left:0;top:248px;width:198px;height:179px;opacity:.6" aria-hidden="true"><span style="inset:59.55% 65.96% 11.36% 28.4%"><span style="inset:-0.77% -3.59% -0.77% -3.59%"><img src="../assets/story/bg/bowl/b2b01.svg" alt=""></span></span><span style="inset:59.55% 25.12% 11.36% 69.24%"><span style="inset:-0.77% -3.59% -0.77% -3.6%"><img src="../assets/story/bg/bowl/8ac55.svg" alt=""></span></span><span style="inset:20.68% 52.57% 48.64% 30.47%"><span style="inset:-0.73% -1.2% -0.73% -1.2%"><img src="../assets/story/bg/bowl/04ccf.svg" alt=""></span></span><span style="inset:24.32% 66.8% 48.64% 17.7%"><span style="inset:-0.83% -1.31% -0.83% -1.31%"><img src="../assets/story/bg/bowl/d7961.svg" alt=""></span></span><span style="inset:40.45% 35.67% 48.64% 43.86%"><span style="inset:-2.06% -0.99% -2.06% -0.99%"><img src="../assets/story/bg/bowl/fbd44.svg" alt=""></span></span><span style="inset:42.73% 20.53% 48.64% 67.19%"><span style="inset:-2.6% -1.65% -2.6% -1.65%"><img src="../assets/story/bg/bowl/e21a4.svg" alt=""></span></span><span style="inset:48.18% 10.3% 48.64% 81.52%"><span style="inset:-7.05% -2.48% -7.05% -2.48%"><img src="../assets/story/bg/bowl/7de7f.svg" alt=""></span></span><span style="inset:44.55% 64.32% 48.64% 24.63%"><span style="inset:-3.29% -1.83% -3.29% -1.83%"><img src="../assets/story/bg/bowl/5b3d7.svg" alt=""></span></span><span style="inset:55.45% 10.7% 37.73% 13.99%"><span style="inset:-3.29% -0.27% -3.29% -0.27%"><img src="../assets/story/bg/bowl/9c63e.svg" alt=""></span></span><span style="inset:50.91% 5.79% 44.09% 9.07%"><span style="inset:-4.49% -0.24% -4.49% -0.24%"><img src="../assets/story/bg/bowl/0dcdf.svg" alt=""></span></span><span style="inset:87.73% 9.89% 10% 13.17%"><span style="inset:-9.87% -0.26% -9.87% -0.26%"><img src="../assets/story/bg/bowl/b24a7.svg" alt=""></span></span><span style="inset:60.45% 78.65% 11.82% 14.39%"><span style="inset:-0.81% -2.91% -0.81% -2.91%"><img src="../assets/story/bg/bowl/65f57.svg" alt=""></span></span><span style="inset:60.45% 11.11% 11.82% 81.93%"><span style="inset:-0.81% -2.91% -0.81% -2.91%"><img src="../assets/story/bg/bowl/c8a1f.svg" alt=""></span></span><span style="inset:91.82% -4.85% 3.64% -1.57%"><span style="inset:-11.06% -0.43% -6.15% -0.43%"><img src="../assets/story/bg/bowl/521f8.svg" alt=""></span></span><span style="inset:9.97% 9.99% 81.36% 51.64%"><span style="inset:-1.44% -0.29% -1.44% -0.29%"><img src="../assets/story/bg/bowl/6db81.svg" alt=""></span></span></div>
+      <div class="story__progress" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i></i></div>
+      <header class="story__header">
+        <p>2026 12월 실록</p>
+        <button type="button" aria-label="닫기"><img src="../assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="story__status"><span>9:41</span><img src="../assets/story/icon-status-white.svg" width="74" height="13" alt=""></div>
+      <div class="story__text">
+        <p class="story__title">밥은 <em>12그릇</em>을<br>먹였구만!</p>
+        <p class="story__sub">조금만 더 챙겨 주면 좋겠소</p>
+      </div>
+      <p class="story__hint">화면을 눌러 넘기기 &gt;</p>
+      <img class="story__char" src="../assets/story/bowl-character.gif" alt="밥을 먹는 덩찌">
+      <div class="story__art story__art--gulbi" style="left:265px;top:69px;width:92px;height:306px;opacity:.6" aria-hidden="true"><span style="inset:3.17% 9.58% 1.22% 8.68%"><span style="inset:-0.14% 0 -0.14% 0"><img src="../assets/story/bg/bowl/8d56d.svg" alt=""></span></span></div>
+      <div class="story__bubble" aria-hidden="true">
+        <div class="story__bubble-box">맛이 좋구먼</div>
+        <div class="story__bubble-tail"><img src="../assets/popup/bubble-tail.svg" alt=""></div>
+      </div>
+      <div class="story__home"></div>
+    </section>
+
+    <section class="story is-hidden" id="story-rank" data-story="rank" aria-label="이번 달 랭킹 성과. 누르면 다음 장으로 넘어갑니다.">
+      <div class="story__art story__art--mount" style="left:-12px;top:330.58px;width:400px;height:155.422px;opacity:.55" aria-hidden="true"><span style="inset:1.94% 2.24% 8.91% 3.31%"><img src="../assets/story/bg/rank/3d63f.svg" alt=""></span><span style="inset:2.33% 0.3% 9.3% 3.31%"><span style="inset:-0.44% -0.16% -0.44% -0.16%"><img src="../assets/story/bg/rank/5a076.svg" alt=""></span></span></div><div class="story__art story__art--fade" aria-hidden="true"></div><div class="story__art " style="left:34px;top:318px;width:80px;height:25.6px;opacity:.85" aria-hidden="true"><span style="inset:31.01% 7.25% 10.94% 1%"><span style="inset:-3.03% -0.61% -3.03% -0.61%"><img src="../assets/story/bg/rank/e4296.svg" alt=""></span></span></div><div class="story__art " style="left:268px;top:300px;width:96px;height:30.72px;opacity:.85" aria-hidden="true"><span style="inset:31.01% 7.25% 10.94% 1%"><span style="inset:-3.03% -0.61% -3.03% -0.61%"><img src="../assets/story/bg/rank/deb92.svg" alt=""></span></span></div><div class="story__art " style="left:-35px;top:140px;width:120px;height:38.4px;opacity:.85" aria-hidden="true"><span style="inset:31.01% 7.25% 10.94% 1%"><span style="inset:-3.03% -0.61% -3.03% -0.61%"><img src="../assets/story/bg/rank/e9b58.svg" alt=""></span></span></div><div class="story__art story__art--pine" style="left:213px;top:104px;width:170px;height:141.667px;opacity:.7" aria-hidden="true"><span style="inset:11.25% 13.9% 8.5% 10%"><span style="inset:-0.19% -0.17% -0.19% -0.17%"><img src="../assets/story/bg/rank/3bae2.svg" alt=""></span></span><span style="inset:0.85% -1.06% 16.46% 13.33%"><span style="inset:-0.34% -0.27% -0.34% -0.27%"><img src="../assets/story/bg/rank/a22ae.svg" alt=""></span></span><span style="inset:3% 10.83% 1.5% 3.13%"><span style="inset:-0.29% -0.27% -0.29% -0.27%"><img src="../assets/story/bg/rank/34d76.svg" alt=""></span></span></div>
+      <div class="story__progress" aria-hidden="true"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
+      <header class="story__header">
+        <p>2026 12월 실록</p>
+        <button type="button" aria-label="닫기"><img src="../assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="story__status"><span>9:41</span><img src="../assets/story/icon-status-white.svg" width="74" height="13" alt=""></div>
+      <div class="story__text">
+        <p class="story__title"><em>선사시대 24위</em>라는<br>성과를 달성하였소</p>
+        <p class="story__sub">장원 급제가 코앞이구먼</p>
+      </div>
+      <p class="story__hint">나만의 덩찌 보러가기 &gt;</p>
+      <img class="story__char" src="../assets/story/rank-character.gif" alt="엄지를 든 덩찌">
+      <div class="story__bubble" aria-hidden="true">
+        <div class="story__bubble-box">장원급제가 코앞!</div>
+        <div class="story__bubble-tail"><img src="../assets/popup/bubble-tail.svg" alt=""></div>
+      </div>
+      <div class="story__home"></div>
+    </section>
+
+    <!-- 표지 (Figma 142:453) -->
+    <section class="cover is-hidden" id="cover" aria-label="유저닉네임의 12월 실록 표지">
+      <svg width="0" height="0" aria-hidden="true"><filter id="cover-ink"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.2"/></filter></svg>
+      <div class="cover__status"><span>9:41</span><img src="../assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <header class="cover__header">
+        <p>2026 12월 실록</p>
+        <button class="cover__close" aria-label="닫기"><img src="../assets/cover-close.svg" width="18" height="18" alt=""></button>
+      </header>
+      <div class="cover__titles">
+        <p class="cover__to" id="cover-name">유저닉네임의</p>
+        <h2 class="cover__title"><em>12월</em> 실록</h2>
+        <p class="cover__lede">한 달의 공부를 이 한 권에 적었소.</p>
+      </div>
+      <div class="cover__card">
+        <div class="cover__silhouette" aria-hidden="true"></div>
+        <p class="cover__caption">마지막 장에서<br>자네의 덩찌가 기다린다네.</p>
+        <span class="cover__chip">No.?</span>
+      </div>
+      <div class="cover__seal"><img src="../assets/cover-seal.svg" width="66.772" height="66.772" alt="우쑤한국사 인장"></div>
+      <ol class="cover__toc">
+        <li><span class="num">一</span><span>출석 기록</span></li>
+        <li><span class="num">二</span><span>오늘의 퀴즈 성과</span></li>
+        <li><span class="num">三</span><span>도전 장원 급제 성과</span></li>
+        <li><span class="num">四</span><span>이번 달의 덩찌</span></li>
+      </ol>
+      <div class="cover__cta">
+        <button class="cover__button" id="cover-open">펼쳐보기</button>
+        <div class="cover__home"></div>
+      </div>
+    </section>
+
+    <!-- 첫 진입 팝업 (Figma 160:773): 홈 화면 + 「12월 실록이 도착했네」 바텀시트 -->
+    <section class="popup is-hidden" id="popup" aria-label="12월 실록 도착 알림">
+      <div class="popup__status"><span>9:41</span><img src="../assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <div class="popup__home-header" aria-hidden="true">
+        <span class="popup__menu"><img src="../assets/popup/icon-menu-line.svg" alt=""><img src="../assets/popup/icon-menu-line.svg" alt=""><img src="../assets/popup/icon-menu-line.svg" alt=""></span>
+        <div class="popup__records">
+          <span class="popup__chip popup__chip--spoon"><span class="popup__spoon"><img src="../assets/popup/icon-spoon.svg" alt=""></span>0그릇</span>
+          <span class="popup__chip popup__chip--day"><img src="../assets/popup/icon-calendar.svg" width="16" height="16" alt="">0일차</span>
+          <span class="popup__chip popup__chip--coin"><img src="../assets/popup/icon-coin.svg" width="16" height="16" alt="">0냥</span>
+        </div>
+      </div>
+      <div class="popup__calendar" aria-hidden="true">
+        <div class="popup__days"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="popup__dates"><span>18</span><span>19</span><span class="is-today">20</span><span>21</span><span>15</span><span>23</span><span>24</span><img class="popup__next" src="../assets/popup/icon-next.svg" alt=""></div>
+      </div>
+      <div class="popup__bubble" aria-hidden="true">
+        <div class="popup__bubble-box"><p>시험이 열렸으니 얼른 참가하시게</p><span>참가하기</span></div>
+        <div class="popup__bubble-tail"><img src="../assets/popup/bubble-tail.svg" alt=""></div>
+      </div>
+      <img class="popup__home-char" src="../assets/popup/home-character.gif" alt="" aria-hidden="true">
+      <p class="popup__reopen">화면을 누르면 알림을 다시 볼 수 있어요</p>
+
+      <div class="popup__sheet" role="dialog" aria-labelledby="popup-title">
+        <img class="popup__spot" src="../assets/popup/spotlight.svg" width="333" height="257" alt="">
+        <div class="popup__texts">
+          <h2 id="popup-title">12월 실록 도착</h2>
+          <p>이번 달 나만의 덩찌는?</p>
+        </div>
+        <div class="popup__figure" aria-hidden="true">
+          <img class="popup__figure-shadow" src="../assets/popup/shadow.svg" width="106" height="23" alt="">
+          <div class="popup__silhouette"></div>
+          <img class="popup__question" src="../assets/popup/question.svg" width="22.716" height="37.8394" alt="">
+        </div>
+        <div class="popup__cta">
+          <button class="popup__open" id="popup-open">실록 보러가기</button>
+          <div class="popup__indicator"></div>
+        </div>
+        <button class="popup__close" id="popup-close" aria-label="닫기"><img src="../assets/popup/close.svg" width="18" height="18" alt=""></button>
+      </div>
+    </section>
+
+    <!-- 마이페이지 (Figma 239:2708 m/ranking/home, 375×919) — 812 화면 안에서 본문만 세로 스크롤 -->
+    <section class="mypage is-hidden" id="mypage" aria-label="마이페이지">
+      <div class="mypage__scroll" id="mypage-scroll">
+        <div class="mypage__content">
+          <!-- 프로필 239:2711 -->
+          <div class="mypage__profile">
+            <div class="mypage__info">
+              <div class="mypage__avatar">
+                <img class="mypage__avatar-shadow" src="../assets/mypage/avatar-shadow.svg" width="65.4016" height="11.5901" alt="">
+                <img class="mypage__avatar-img" src="../assets/mypage/avatar-nobi.gif" alt="">
+              </div>
+              <div class="mypage__user">
+                <p class="mypage__name">닉네임 <img src="../assets/mypage/icon-edit.svg" width="21" height="21" alt="닉네임 수정"></p>
+                <p class="mypage__phone">010-8923-5972</p>
+              </div>
+            </div>
+            <div class="mypage__rank">
+              <p class="mypage__rank-name">노비</p>
+              <div class="mypage__rank-row">
+                <p class="mypage__rank-next">신분상승까지 7그릇 <img src="../assets/mypage/icon-back.svg" width="14" height="14" alt=""></p>
+                <span class="mypage__rank-count">0 / 7</span>
+              </div>
+              <div class="mypage__rank-bar"><i class="mypage__rank-track"><i class="mypage__rank-fill"></i></i></div>
+            </div>
+          </div>
+
+          <!-- 배너 239:2725 → 12월 실록 다시 보기 -->
+          <button class="mypage__report" id="mypage-report" type="button">
+            <span class="mypage__report-text">우쑤한국사 12월 실록 보기</span>
+            <span class="mypage__report-seal"><img src="../assets/mypage/seal.svg" width="66.7719" height="66.7719" alt=""></span>
+          </button>
+
+          <!-- 학습 개요 239:2741 -->
+          <div class="mypage__group">
+            <h2 class="mypage__heading">학습 개요</h2>
+            <div class="mypage__stats">
+              <div class="mypage__stat"><b>0</b><span>연속 공부</span></div>
+              <div class="mypage__stat"><b>0</b><span>밥그릇</span></div>
+              <div class="mypage__stat"><b>0</b><span>엽전</span></div>
+            </div>
+          </div>
+
+          <!-- 뱃지 239:2747 -->
+          <div class="mypage__group">
+            <h2 class="mypage__heading">뱃지</h2>
+            <ul class="mypage__badges">
+              <li class="mypage__badge mypage__badge--1"><span class="mypage__badge-art"><img src="../assets/mypage/badge-1.png" alt=""><i class="mypage__badge-level">3</i></span>선사</li>
+              <li class="mypage__badge mypage__badge--2"><span class="mypage__badge-art"><img src="../assets/mypage/badge-2.png" alt=""></span>삼국</li>
+              <li class="mypage__badge mypage__badge--3"><span class="mypage__badge-art"><img src="../assets/mypage/badge-3.png" alt=""></span>고려</li>
+              <li class="mypage__badge mypage__badge--4 is-locked"><span class="mypage__badge-art"><img src="../assets/mypage/badge-4.png" alt=""></span>조선</li>
+              <li class="mypage__badge mypage__badge--5 is-locked"><span class="mypage__badge-art"><img src="../assets/mypage/badge-5.png" alt=""></span>일제강점기</li>
+              <li class="mypage__badge mypage__badge--6"><span class="mypage__badge-art"><img src="../assets/mypage/badge-6.png" alt=""></span>근대사</li>
+              <li class="mypage__badge mypage__badge--7"><span class="mypage__badge-art"><img src="../assets/mypage/badge-7.png" alt=""></span>현대사</li>
+              <li class="mypage__badge mypage__badge--8 is-locked"><span class="mypage__badge-art"><img src="../assets/mypage/badge-8.png" alt=""></span>랜덤</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 고정: 상태바 · 홈 헤더 · GNB · 홈 인디케이터 -->
+      <div class="mypage__status"><span>9:41</span><img src="../assets/icon-status.svg" width="74" height="13" alt=""></div>
+      <div class="mypage__header">
+        <span class="mypage__menu"><img src="../assets/popup/icon-menu-line.svg" alt=""><img src="../assets/popup/icon-menu-line.svg" alt=""><img src="../assets/popup/icon-menu-line.svg" alt=""></span>
+        <div class="mypage__records">
+          <span class="mypage__chip mypage__chip--spoon"><span class="mypage__spoon"><img src="../assets/popup/icon-spoon.svg" alt=""></span>0그릇</span>
+          <span class="mypage__chip mypage__chip--day"><img src="../assets/mypage/icon-calendar.svg" width="16" height="16" alt="">0일차</span>
+          <span class="mypage__chip mypage__chip--coin"><img src="../assets/mypage/icon-coin.svg" width="16" height="16" alt="">0냥</span>
+        </div>
+      </div>
+      <nav class="mypage__gnb">
+        <a class="mypage__tab mypage__tab--home"><span class="mypage__tab-icon"><img src="../assets/mypage/gnb-home.svg" width="23.5" height="19.5004" alt=""></span>홈</a>
+        <a class="mypage__tab mypage__tab--crown"><span class="mypage__tab-icon"><img src="../assets/mypage/gnb-crown.svg" width="25.127" height="17.875" alt=""></span>도전 장원급제</a>
+        <a class="mypage__tab mypage__tab--my is-active" aria-current="page"><span class="mypage__tab-icon"><img src="../assets/mypage/gnb-account.svg" width="26" height="26" alt=""></span>마이페이지</a>
+      </nav>
+      <div class="mypage__home"></div>
+    </section>
+
+  </main>
+
+  <button class="replay" id="replay">다시 재생</button>
+
+  <template id="card-skeleton">
+    <div class="card__body card__body--skeleton">
+      <div class="skel-head"><span class="skel skel--name"></span><span class="skel skel--sub"></span></div>
+      <div class="silhouette"></div>
+      <span class="skel skel--tile"></span>
+      <span class="skel skel--badge"></span>
+    </div>
+  </template>
+
+  <template id="card-result">
+    <div class="card__body card__body--result">
+      <div class="result-top">
+        <div class="result-head">
+          <p class="result-name" data-k="name"></p>
+        </div>
+        <div class="result-char">
+          <div class="burst"></div>
+          <img data-k="image" width="220" height="220" alt="">
+        </div>
+      </div>
+      <p class="result-quote" data-k="desc"></p>
+      <p class="badge" data-k="no"></p>
+    </div>
+  </template>
+
+<script>
+  // 결과 데이터 (실제로는 분석 API 응답으로 교체)
+  const RESULT = {
+    title: '찾았다 자네의 덩찌!',
+    no: 'No.07',
+    name: '새벽을 여는<br>장원급제 선비',
+    desc: '첫 닭이 울면 그대가 생각나는 구려..',
+    image: '../assets/character-seonbi.png',
+  };
+  const fmt = s => s.text ?? `${s.prefix ?? ''}${s.value}${s.suffix ?? ''}`;
+
+  const CARD_W = 272, GAP = 17, STEP = CARD_W + GAP, SCREEN_W = 375;
+  const COUNT = 26, TARGET = 20;
+  const SPIN_MS = 2400;       // 셔플 → 감속 정지
+  const ANALYZE_MS = 1300;    // 스켈레톤 상태 유지 (API 대기 연출)
+
+  const $ = id => document.getElementById(id);
+  const screen = $('screen'), track = $('track'), title = $('title');
+  if (window.self !== window.top) document.body.classList.add('is-embed');
+  const tplSkeleton = $('card-skeleton'), tplResult = $('card-result');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf, timers = [], anims = [];
+
+  const offsetFor = i => i * STEP + CARD_W / 2 - SCREEN_W / 2;
+  const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+  const setX = x => track.style.transform = `translateX(${-x}px)`;
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const animate = (el, kf, opt) => { const a = el.animate(kf, { fill: 'both', ...opt }); anims.push(a); return a; };
+  const POP = 'cubic-bezier(.34, 1.56, .64, 1)', OUT = 'cubic-bezier(.22, 1, .36, 1)';
+
+  function build() {
+    track.innerHTML = '';
+    for (let i = 0; i < COUNT; i++) {
+      const c = document.createElement('div');
+      c.className = 'card';
+      c.style.left = i * STEP + 'px';
+      c.appendChild(tplSkeleton.content.cloneNode(true));
+      if (i === TARGET) {
+        const body = tplResult.content.cloneNode(true);
+        body.querySelector('[data-k="name"]').innerHTML = RESULT.name;
+        body.querySelector('[data-k="desc"]').textContent = RESULT.desc;
+        body.querySelector('[data-k="image"]').src = RESULT.image;
+        body.querySelector('[data-k="no"]').textContent = RESULT.no;
+        c.appendChild(body);
+      }
+      track.appendChild(c);
+    }
+  }
+
+  function countUp(el, s, ms) {
+    if (s.text != null) return;   // 숫자가 아닌 값(예: '아침')은 카운트하지 않음
+    const { value, countFrom = 0 } = s;
+    const t0 = performance.now();
+    (function f(now) {
+      const p = Math.min(1, (now - t0) / ms);
+      el.textContent = fmt({ ...s, value: Math.round(countFrom + (value - countFrom) * easeOutQuart(p)) });
+      if (p < 1) requestAnimationFrame(f);
+    })(t0);
+  }
+
+  function burst(container) {
+    const colors = ['#ff8a00', '#ffbf10', '#ffffff', '#ffc422'];
+    for (let i = 0; i < 18; i++) {
+      const dot = document.createElement('i');
+      const ang = (i / 18) * Math.PI * 2 + Math.random() * .3;
+      const dist = 95 + Math.random() * 45;
+      const size = 5 + Math.random() * 6;
+      dot.style.cssText = `width:${size}px;height:${size}px;margin:${-size / 2}px;background:${colors[i % 4]}`;
+      container.appendChild(dot);
+      animate(dot, [
+        { opacity: 1, transform: 'translate(0,0) scale(1)' },
+        { opacity: 1, transform: `translate(${Math.cos(ang) * dist * .8}px,${Math.sin(ang) * dist * .8}px) scale(1)`, offset: .6 },
+        { opacity: 0, transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist + 14}px) scale(.3)` },
+      ], { duration: 900 + Math.random() * 300, easing: OUT, delay: 40 });
+    }
+  }
+
+  // ---------- 공개 연출 ----------
+  function reveal(card) {
+    const result = card.querySelector('.card__body--result');
+    const head = result.querySelector('.result-head');
+    const img = result.querySelector('.result-char img');
+    const quote = result.querySelector('.result-quote');
+    const badge = result.querySelector('.badge');
+    const end = $('end');
+
+    if (reduceMotion) {
+      screen.classList.add('is-revealed');
+      card.classList.remove('is-analyzing');
+      title.textContent = RESULT.title;
+      animate(end, [{ opacity: 1 }], { duration: 0 });
+      end.style.pointerEvents = 'auto';
+      animate($('spotlight'), [{ opacity: 1 }], { duration: 0 });
+      animate(document.querySelector('.bg-reveal'), [{ opacity: 1 }], { duration: 0 });
+      animate($('share'), [{ opacity: 1, transform: 'none' }], { duration: 0 });
+      $('share').style.pointerEvents = 'auto';
+      return;
+    }
+
+    // 1) 기 모으기: 카드가 살짝 움츠러들며 떨림
+    animate(card, [
+      { transform: 'scale(1) rotate(0)' },
+      { transform: 'scale(.965) rotate(-1.2deg)', offset: .25 },
+      { transform: 'scale(.955) rotate(1.2deg)', offset: .5 },
+      { transform: 'scale(.95) rotate(-.8deg)', offset: .75 },
+      { transform: 'scale(.95) rotate(0)' },
+    ], { duration: 380, easing: 'ease-in-out', fill: 'none' });
+    navigator.vibrate?.([8, 40, 8, 40, 8]);
+
+    // 2) 번쩍! (380ms)
+    later(() => {
+      animate($('flash'), [{ opacity: 0 }, { opacity: .95, offset: .2 }, { opacity: 0 }], { duration: 550, easing: 'ease-out' });
+      screen.classList.add('is-revealed');
+      card.classList.remove('is-analyzing');
+      title.textContent = RESULT.title;
+      navigator.vibrate?.(35);
+
+      // 카드 팝
+      animate(card, [{ transform: 'scale(.95)' }, { transform: 'scale(1.04)', offset: .45 }, { transform: 'scale(1)' }],
+        { duration: 600, easing: OUT, fill: 'none' });
+
+      // 배경 + 스포트라이트가 위에서 쏟아짐 → 이후 은은하게 흔들림
+      animate(document.querySelector('.bg-reveal'), [{ opacity: 0 }, { opacity: 1 }], { duration: 500, easing: 'ease-out' });
+      animate($('spotlight'), [
+        { opacity: 0, transform: 'translateX(-50%) scaleY(0) scaleX(.4)' },
+        { opacity: 1, transform: 'translateX(-50%) scaleY(1) scaleX(1)' },
+      ], { duration: 700, easing: OUT }).finished.then(() => {
+        animate($('spotlight'), [
+          { transform: 'translateX(-50%) rotate(0deg)' },
+          { transform: 'translateX(-50%) rotate(2.5deg)' },
+          { transform: 'translateX(-50%) rotate(-2.5deg)' },
+          { transform: 'translateX(-50%) rotate(0deg)' },
+        ], { duration: 6000, iterations: Infinity, easing: 'ease-in-out', composite: 'replace' });
+      }).catch(() => {});
+
+      // 타이틀
+      animate(title, [
+        { opacity: 0, transform: 'translateX(-50%) translateY(8px) scale(.9)' },
+        { opacity: 1, transform: 'translateX(-50%) translateY(0) scale(1)' },
+      ], { duration: 500, easing: POP, delay: 120 });
+
+      // 캐릭터: 아래에서 튀어 오르며 등장 + 파티클
+      animate(img, [
+        { opacity: 0, transform: 'translateY(40px) scale(.5)' },
+        { opacity: 1, transform: 'translateY(-14px) scale(1.08)', offset: .55 },
+        { opacity: 1, transform: 'translateY(0) scale(1)' },
+      ], { duration: 750, easing: OUT, delay: 60 });
+      later(() => burst(result.querySelector('.burst')), 180);
+
+      // 이름 / 설명
+      animate(head, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 450, easing: OUT, delay: 380 });
+
+      // 한 줄 소개 타일
+      animate(quote, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 450, easing: OUT, delay: 560 });
+
+      // No.07 배지: 도장 찍듯 쾅
+      animate(badge, [
+        { opacity: 0, transform: 'scale(2.2) rotate(-14deg)' },
+        { opacity: 1, transform: 'scale(.92) rotate(3deg)', offset: .6 },
+        { opacity: 1, transform: 'scale(1) rotate(0)' },
+      ], { duration: 420, easing: 'cubic-bezier(.5, 0, .75, 0)', delay: 900 });
+      later(() => navigator.vibrate?.(15), 1150);
+
+      // 공유 버튼
+      animate($('share'), [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 500, easing: OUT, delay: 1300 });
+      animate(end, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: 'ease-out', delay: 1500 });
+      later(() => { $('share').style.pointerEvents = 'auto'; end.style.pointerEvents = 'auto'; }, 1300);
+    }, 380);
+  }
+
+  function land() {
+    const cards = track.children;
+    const card = cards[TARGET];
+    cards[TARGET - 1].classList.add('is-prev');
+    cards[TARGET + 1].classList.add('is-next');
+    card.classList.add('is-active', 'is-analyzing');
+    navigator.vibrate?.(20);
+    later(() => reveal(card), ANALYZE_MS);
+  }
+
+  function reset() {
+    cancelAnimationFrame(raf);
+    if (typeof stopAuto === 'function') stopAuto();
+    timers.forEach(clearTimeout); timers = [];
+    anims.forEach(a => a.cancel()); anims = [];
+    screen.classList.remove('is-revealed', 'is-sharing');
+    $('share-sheet').className = 'share-sheet is-hidden';
+    $('mypage').classList.add('is-hidden');
+    title.textContent = '이번달 나의 덩찌는?';
+    $('share').style.pointerEvents = 'none';
+    $('end').style.pointerEvents = 'none';
+  }
+
+  function play() {
+    reset();
+    build();
+    const end = offsetFor(TARGET);
+    if (reduceMotion) { setX(end); land(); return; }
+    const t0 = performance.now();
+    setX(0);
+    (function frame(now) {
+      const p = Math.min(1, (now - t0) / SPIN_MS);
+      setX(end * easeOutQuart(p));
+      if (p < 1) raf = requestAnimationFrame(frame);
+      else land();
+    })(t0);
+  }
+
+  // ---------- 표지 → 셔플 연결 ----------
+  const cover = $('cover');
+  function showCover() {
+    reset();
+    hideSteps();
+    build();
+    setX(0);
+    cover.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void cover.offsetWidth;
+    cover.classList.add('is-entering');
+  }
+  // 결과 화면만 보기: 셔플 없이 멈춘 카드에서 바로 공개
+  function showResult() {
+    reset();
+    build();
+    cover.classList.add('is-hidden');
+    hideSteps();
+    $('popup').classList.add('is-hidden');
+    setX(offsetFor(TARGET));
+    const cards = track.children;
+    cards[TARGET - 1].classList.add('is-prev');
+    cards[TARGET + 1].classList.add('is-next');
+    cards[TARGET].classList.add('is-active');
+    later(() => reveal(cards[TARGET]), 300);
+  }
+
+  // 페이지 종류: <html data-page="flow | popup | cover | time | result | mypage">
+  //  flow   — 첫 진입 팝업 → 표지 → 시간 → 퀴즈 → 밥그릇 → 랭킹 → 셔플 → 결과 → 공유 (index.html)
+  //  popup  — 첫 진입 팝업만 (popup.html). 「실록 보러가기」는 cover.html로 이동
+  //  cover  — 표지부터 (cover.html). 「펼쳐보기」는 time.html로 이동
+  //  time   — 주요 공부 시간부터 (time*.html)
+  //  result — 결과 공개만 (result.html)
+  //  mypage — 마이페이지 (mypage.html). 「12월 실록 보기」로 실록 다시 열기. 실록 안의 닫기(X)도 여기로
+  const PAGE = document.documentElement.dataset.page || 'flow';
+
+  // ---------- 주요 공부 시간 (표지 다음 장) ----------
+  // 실제 데이터: 이번 달 가장 많이 공부한 시간대. 미리보기는 주소 뒤에 ?time=afternoon 처럼 바꿔 볼 수 있다.
+  const TIMES = {
+    morning:   { word: '아침', sub: '일찍 일어나는 새가 벌레를 잡는다!',  bubble: '피곤하구려..' },
+    afternoon: { word: '오후', sub: '해가 중천에 떠도 붓은 멈추지 않는다', bubble: '한 장만 더 읽겠소' },
+    night:     { word: '밤',   sub: '낮에는 밭을 갈고 밤에는 글을 읽는다', bubble: '주경야독이라고 하지' },
+  };
+  const timeKey = new URLSearchParams(location.search).get('time') || document.documentElement.dataset.time;
+  const ACTIVE_TIME = TIMES[timeKey] ? timeKey : 'morning';
+  const time = $('time');
+  function showTime() {
+    const t = TIMES[ACTIVE_TIME];
+    time.dataset.time = ACTIVE_TIME;
+    $('time-word').textContent = t.word;
+    $('time-sub').textContent = t.sub;
+    $('time-bubble').textContent = t.bubble;
+    time.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void time.offsetWidth;
+    time.classList.add('is-entering');
+    startAuto(time);
+  }
+  // ---------- 이야기 장 넘기기: 시간 → 퀴즈 → 밥그릇 → 랭킹 → 셔플 ----------
+  // 각 장 왼쪽(113px)을 누르면 이전 장, 나머지를 누르면 다음 장 (Figma 239:1607)
+  const STEPS = ['time', 'story-quiz', 'story-bowl', 'story-rank'].map($);
+  let step = 0;
+  function enter(el) {
+    if (el === time) return showTime();
+    el.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void el.offsetWidth;
+    el.classList.add('is-entering');
+    startAuto(el);
+  }
+  // 자동 넘김 (5초). 진행 표시: 지난 장은 채움, 현재 장은 5초 동안 왼쪽부터 채워짐
+  const AUTO_MS = 5000;
+  var autoT = 0;
+  function stopAuto() { clearTimeout(autoT); }
+  function startAuto(el) {
+    stopAuto();
+    const k = STEPS.indexOf(el);
+    const bars = el.querySelectorAll('.time__progress i, .story__progress i');
+    bars.forEach((b, i) => { b.classList.toggle('is-on', i < k); b.classList.remove('is-current'); });
+    void el.offsetWidth;
+    bars[k]?.classList.add('is-current');
+    autoT = setTimeout(() => {
+      if (STEPS[step] === el && !el.classList.contains('is-hidden') && !el.classList.contains('is-leaving')) goStep(step + 1);
+    }, AUTO_MS);
+  }
+  function leave(el) {
+    el.classList.add('is-leaving');
+    setTimeout(() => { if (el.classList.contains('is-leaving')) el.classList.add('is-hidden'); }, 400);
+  }
+  function goStep(n) {
+    const cur = STEPS[step];
+    if (cur.classList.contains('is-leaving')) return;
+    stopAuto();
+    navigator.vibrate?.(10);
+    if (n >= STEPS.length) { leave(cur); play(); return; }   // 마지막 장 → 덩찌 셔플
+    if (n < 0) {                                              // 첫 장에서 이전 → 표지
+      if (PAGE !== 'flow') return;
+      leave(cur); showCover(); return;
+    }
+    // 장 사이 전환: 나가는 장은 그대로 두고 들어오는 장만 위에서 페이드 → 아래 셔플 화면이 비치지 않게
+    const next = STEPS[n];
+    step = n;
+    cur.classList.add('is-behind');
+    next.classList.add('is-front');
+    enter(next);
+    leave(cur);
+    setTimeout(() => { cur.classList.remove('is-behind'); next.classList.remove('is-front'); }, 420);
+  }
+  STEPS.forEach(el => {
+    el.insertAdjacentHTML('beforeend',
+      '<button class="tapzone tapzone--prev" aria-label="이전 장"></button><button class="tapzone tapzone--next" aria-label="다음 장"></button>');
+    el.querySelector('.tapzone--prev').addEventListener('click', () => goStep(step - 1));
+    el.querySelector('.tapzone--next').addEventListener('click', () => goStep(step + 1));
+  });
+  function hideSteps() { stopAuto(); STEPS.forEach(el => el.classList.add('is-hidden')); step = 0; }
+
+  $('cover-open').addEventListener('click', () => {
+    navigator.vibrate?.(10);
+    cover.classList.add('is-leaving');
+    if (PAGE === 'cover') { setTimeout(() => { location.href = 'time.html'; }, 450); return; }
+    showTime();                                // 표지 아래에서 시간 화면이 드러남
+    setTimeout(() => cover.classList.add('is-hidden'), 450);
+  });
+  function startTime() { reset(); build(); setX(0); cover.classList.add('is-hidden'); $('popup').classList.add('is-hidden'); hideSteps(); showTime(); }
+  // ---------- 첫 진입 팝업 (표지 앞) ----------
+  const popup = $('popup');
+  function showPopup() {
+    reset(); build(); setX(0);
+    cover.classList.add('is-hidden'); hideSteps();
+    popup.classList.remove('is-hidden', 'is-leaving', 'is-entering', 'is-closed');
+    void popup.offsetWidth;
+    popup.classList.add('is-entering');
+  }
+  $('popup-open').addEventListener('click', () => {
+    navigator.vibrate?.(10);
+    if (PAGE === 'popup') { popup.classList.add('is-leaving'); setTimeout(() => { location.href = 'cover.html'; }, 350); return; }
+    showCover();                               // 팝업 아래에 표지를 깔고
+    popup.classList.add('is-leaving');         // 팝업 전체가 페이드로 사라지며 표지가 드러남
+    setTimeout(() => popup.classList.add('is-hidden'), 350);
+  });
+  $('popup-close').addEventListener('click', e => { e.stopPropagation(); popup.classList.remove('is-entering'); popup.classList.add('is-closed'); });
+  popup.addEventListener('click', e => {       // 닫은 뒤 홈을 누르면 시트가 다시 올라옴 (프로토타입용)
+    if (!popup.classList.contains('is-closed') || e.target.closest('.popup__sheet')) return;
+    popup.classList.add('is-reopening'); popup.classList.remove('is-closed');
+    requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.remove('is-reopening')));
+  });
+  // ---------- 공유 시트 (결과 → 「친구에게 공유하기」) ----------
+  const sheet = $('share-sheet');
+  function openShare() {
+    screen.classList.add('is-sharing');
+    sheet.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void sheet.offsetWidth;
+    sheet.classList.add('is-entering');
+  }
+  function closeShare(instant) {
+    screen.classList.remove('is-sharing');
+    if (instant) { sheet.className = 'share-sheet is-hidden'; return; }
+    sheet.classList.add('is-leaving');
+    setTimeout(() => sheet.classList.add('is-hidden'), 350);
+  }
+  $('share').addEventListener('click', () => { navigator.vibrate?.(10); openShare(); });
+  sheet.querySelectorAll('[data-share-close]').forEach(b => b.addEventListener('click', () => closeShare()));
+  const SHARE_MSG = { story: '스토리에 올렸소!', save: '이미지를 저장했소!', link: '링크를 복사했소!', more: '공유했소!' };
+  sheet.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => {
+    const t = $('share-sheet-toast');
+    t.textContent = SHARE_MSG[b.dataset.share]; t.classList.add('is-on');
+    setTimeout(() => { t.classList.remove('is-on'); showMypage(); }, 1100);   // 프로토타입: 공유 후 마이페이지로
+  }));
+
+  // ---------- 마이페이지 (실록을 닫으면 도착, 「12월 실록 보기」로 다시 열기) ----------
+  const mypage = $('mypage');
+  function showMypage() {
+    reset(); closeShare(true); hideSteps();
+    cover.classList.add('is-hidden'); popup.classList.add('is-hidden');
+    $('mypage-scroll').scrollTop = 0;
+    mypage.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    void mypage.offsetWidth;
+    mypage.classList.add('is-entering');
+  }
+  function hideMypage() { mypage.classList.add('is-hidden'); }
+  $('mypage-report').addEventListener('click', () => {
+    navigator.vibrate?.(10);
+    showCover();
+    mypage.classList.add('is-leaving');
+    setTimeout(() => mypage.classList.add('is-hidden'), 450);
+  });
+  // 닫기(X): 결과 화면이면 마이페이지, 그 밖(표지·이야기 장·셔플)은 홈
+  function showHome() {
+    reset(); closeShare(true); hideSteps();
+    cover.classList.add('is-hidden'); mypage.classList.add('is-hidden');
+    popup.classList.remove('is-hidden', 'is-leaving', 'is-entering');
+    popup.classList.add('is-reopening', 'is-closed');            // 시트 없이 홈만
+    requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.remove('is-reopening')));
+  }
+  // 결과 화면 「종료하기」 → 마이페이지
+  $('end').addEventListener('click', () => { navigator.vibrate?.(10); showMypage(); });
+  document.querySelectorAll('.header__close, .cover__close, .time__header button, .story__header button')
+    .forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      if (b.classList.contains('header__close') && screen.classList.contains('is-revealed')) showMypage();
+      else showHome();
+    }));
+
+  const startAt = new URLSearchParams(location.search).get('start');
+  const start = PAGE === 'result' ? showResult : PAGE === 'time' ? startTime : PAGE === 'mypage' ? showMypage
+              : (PAGE === 'cover' || startAt === 'cover') ? showCover : showPopup;
+  $('replay').addEventListener('click', start);
+  start();
+</script>
+</body>
+</html>
