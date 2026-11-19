@@ -760,10 +760,10 @@
   // 실제 데이터: 이번 달 가장 많이 공부한 시간대. 미리보기는 주소 뒤에 ?time=afternoon 처럼 바꿔 볼 수 있다.
   const TIMES = {
     morning:   { word: '아침', sub: '일찍 일어나는 새가 벌레를 잡는다!' },
-    afternoon: { word: '오후', sub: '일찍 일어나는 새가 벌레를 잡는다!' },
+    afternoon: { word: '오후', sub: '해가 중천에 떠도 붓은 멈추지 않는다' },
     night:     { word: '밤',   sub: '낮에는 밭을 갈고 밤에는 글을 읽는다' },
   };
-  const timeKey = new URLSearchParams(location.search).get('time');
+  const timeKey = new URLSearchParams(location.search).get('time') || document.documentElement.dataset.time;
   const ACTIVE_TIME = TIMES[timeKey] ? timeKey : 'morning';
   const time = $('time');
   function showTime() {

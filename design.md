@@ -220,7 +220,7 @@ Figma: [월간리포트](https://www.figma.com/design/v0xiKAQUwlHE8HjFCICDpQ) ·
 | 시간대 | Figma | 배경 (위 → 58% 흰색) | 문구 | 캐릭터 |
 |---|---|---|---|---|
 | 아침 | `229:1502` | `#CAE8FD` | 일찍 일어나는 새가 벌레를 잡는다! | `assets/time/morning-character.png` |
-| 오후 | `229:7510` | `#FBEB97` | 일찍 일어나는 새가 벌레를 잡는다! *(아침과 같음 — 확인 필요)* | `assets/time/afternoon-character.gif` (움직임) |
+| 오후 | `229:7510` | `#FBEB97` | 해가 중천에 떠도 붓은 멈추지 않는다 | `assets/time/afternoon-character.gif` (움직임) |
 | 밤 | `231:1247` | `#213F7A` | 낮에는 밭을 갈고 밤에는 글을 읽는다 | `assets/time/night-character.gif` (움직임) |
 
 | 요소 | 위치 / 값 |
