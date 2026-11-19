@@ -3,6 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 src = (root / 'index.html').read_text()
 pages = {
+    'popup.html':  ('popup',  '월간리포트 — 첫 진입 팝업'),
     'cover.html':  ('cover',  '월간리포트 — 표지'),
     'time.html':   ('time',   '월간리포트 — 주요 공부 시간'),
     'result.html': ('result', '월간리포트 — 덩찌 결과'),

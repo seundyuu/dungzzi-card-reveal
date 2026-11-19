@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon_calendar">
+<g id="Rectangle 331">
+</g>
+<rect id="Rectangle 329" x="1" y="2" width="14" height="13" rx="2.33333" fill="#C3EF11"/>
+<g id="Rectangle 330">
+<path d="M1 4.33333C1 3.04467 2.04467 2 3.33333 2H12.6667C13.9553 2 15 3.04467 15 4.33333V6H1V4.33333Z" fill="#71B600"/>
+<mask id="stroke0_0_376" fill="white">
+<path d="M1 4.33333C1 3.04467 2.04467 2 3.33333 2H12.6667C13.9553 2 15 3.04467 15 4.33333V6H1V4.33333Z"/>
+</mask>
+<path d="M15 6V4.33333C15 3.04467 13.9553 2 12.6667 2H3.33333C2.04467 2 1 3.04467 1 4.33333V6H15Z" stroke-width="3.5" stroke="#71B600" mask="url(#stroke0_0_376)"/>
+</g>
+<path id="Vector 108" d="M4.5 1.5V3.5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" stroke="#71B600"/>
+<path id="Vector 109" d="M11.5 1.5V3.5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" stroke="#71B600"/>
+</g>
+</svg>
