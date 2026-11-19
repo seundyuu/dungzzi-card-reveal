@@ -14,7 +14,7 @@
 | 주요 공부 시간 — 아침 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-morning.html | 아침 버전 |
 | 주요 공부 시간 — 점심 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-afternoon.html | 점심 버전 |
 | 주요 공부 시간 — 저녁 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-night.html | 저녁 버전 |
-| 결과 | https://seundyuu.github.io/dungzzi-card-reveal/v2/result.html | 셔플 없이 덩찌 결과 공개만 (「친구에게 공유하기」 → 공유 시트) |
+| 결과 | https://seundyuu.github.io/dungzzi-card-reveal/v2/result.html | 셔플 없이 덩찌 결과 공개만 (「친구에게 공유하기」 → 아이폰에서는 기본 공유하기, PC에서는 iOS 공유 시트 예시) |
 | 결과 — 한 줄 소개 2줄 | https://seundyuu.github.io/dungzzi-card-reveal/v2/result.html?line=2 | 소개 타일이 2줄일 때 (카드 380) |
 | 마이페이지 | https://seundyuu.github.io/dungzzi-card-reveal/v2/mypage.html | 「우쑤한국사 12월 실록 보기」로 실록 다시 열기 |
 
