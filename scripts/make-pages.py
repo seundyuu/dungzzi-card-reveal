@@ -7,6 +7,7 @@ pages = {
     'cover.html':  ('cover',  '월간리포트 — 표지'),
     'time.html':   ('time',   '월간리포트 — 주요 공부 시간'),
     'result.html': ('result', '월간리포트 — 덩찌 결과'),
+    'mypage.html': ('mypage', '월간리포트 — 마이페이지'),
     'time-morning.html':   ('time', '월간리포트 — 주요 공부 시간 (아침)', 'morning'),
     'time-afternoon.html': ('time', '월간리포트 — 주요 공부 시간 (오후)', 'afternoon'),
     'time-night.html':     ('time', '월간리포트 — 주요 공부 시간 (밤)', 'night'),
