@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마이페이지 실록 배너 — 폭별 미리보기</title>
+<style>
+  @font-face { font-family: "ChosunCentennialBanner"; src: url("ChosunCentennial-banner-subset.woff2") format("woff2"); font-display: block; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif; background: #f7f5f2; color: #333; padding: 24px 16px; }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  p.lead { font-size: 13px; color: #666; margin-bottom: 20px; }
+  .row { margin-bottom: 18px; }
+  .row h2 { font-size: 12px; font-weight: 600; color: #8b8b8b; margin-bottom: 6px; }
+  .device { padding: 12px 20px; background: #f7f5f2; outline: 1px dashed #d6d1c8; border-radius: 8px; }
+
+  /* ===== 배너 (Figma 299:6593) — 배경만 가로로 늘어나고, 글자는 왼쪽 · 도장은 오른쪽에 고정 ===== */
+  .banner {
+    position: relative; width: 100%; height: 56px;
+    border-radius: 12px; background: #efe7d8; overflow: hidden;
+  }
+  .banner::after {            /* 테두리는 도장 위에 그려짐 (Figma와 같게) */
+    content: ""; position: absolute; inset: 0; border: 1px solid #c1c1c1; border-radius: inherit; pointer-events: none;
+  }
+  .banner__title {
+    position: absolute; left: 20px; top: 15px;
+    font-family: "ChosunCentennialBanner", serif; font-size: 18px; line-height: 25px; letter-spacing: -0.2px;
+    color: #171717; white-space: nowrap;
+  }
+  .banner__title--svg { height: 25px; width: auto; display: block; }
+  /* 도장: 기본은 오른쪽 8.22에 붙음(= 왼쪽 끝이 배너 폭 − 90).
+     단, 제목 끝(20 + 197) + 8 = 225보다 왼쪽으로 오지 않음 → 좁은 화면에서는 도장이 오른쪽으로 더 잘림 */
+  .banner__stamp { position: absolute; left: max(calc(100% - 90px), 225px); top: -7px; width: 81.78px; height: 81.78px; }
+</style>
+</head>
+<body>
+  <h1>마이페이지 「실록 보기」 배너</h1>
+  <p class="lead">배경(코드) + 제목(서브셋 폰트) + 도장(SVG). 화면 폭이 달라도 배경만 늘어납니다. 좌우 여백 20 기준.</p>
+
+  <div id="rows"></div>
+
+  <div class="row">
+    <h2>비교: 제목을 아웃라인 SVG(title-12.svg)로 넣은 경우 — 375 화면</h2>
+    <div class="device" style="width:375px">
+      <div class="banner">
+        <img class="banner__title banner__title--svg" src="title-12.svg" alt="우쑤한국사 12월 실록 보기">
+        <img class="banner__stamp" src="stamp-rotated.svg" alt="">
+      </div>
+    </div>
+  </div>
+
+<script>
+  const widths = [[320, 'iPhone SE (1세대) · 작은 안드로이드'], [360, '갤럭시 S 시리즈'], [375, '기준 (Figma)'], [393, 'iPhone 15 / 16'], [430, 'iPhone Pro Max']];
+  const month = 12;
+  document.getElementById('rows').innerHTML = widths.map(([w, label]) => `
+    <div class="row">
+      <h2>${w} 화면 — ${label} (배너 폭 ${w - 40})</h2>
+      <div class="device" style="width:${w}px">
+        <div class="banner">
+          <p class="banner__title">우쑤한국사 ${month}월 실록 보기</p>
+          <img class="banner__stamp" src="stamp-rotated.svg" alt="">
+        </div>
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>
