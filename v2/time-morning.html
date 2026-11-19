@@ -228,8 +228,10 @@
   .result-quote {
     width: 100%; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .7);
     font-weight: 600; font-size: 16px; line-height: 22px; letter-spacing: -0.2px; color: var(--gray-300);
-    text-align: center; white-space: nowrap;
+    text-align: center; white-space: pre-line;
   }
+  /* 한 줄 소개가 2줄이면 카드 358 → 380 (Figma 291:6062) */
+  .is-revealed .card.is-active.is-2line { height: 380px; }
   .tiles { width: 100%; display: flex; flex-direction: column; gap: 8px; letter-spacing: -0.2px; white-space: nowrap; }
   .tiles__row { display: flex; gap: 8px; }
   .tile {
@@ -781,7 +783,7 @@
       </header>
       <div class="story__status"><span>9:41</span><img src="../assets/story/icon-status-white.svg" width="74" height="13" alt=""></div>
       <div class="story__text">
-        <p class="story__title">오늘의 퀴즈는<br><em>8회</em> 풀었소</p>
+        <p class="story__title">오늘의 퀴즈는<br><em>8일</em> 풀었소</p>
         <p class="story__sub">조금 더 성실하게 정진하시게</p>
       </div>
       <p class="story__hint">화면을 눌러 넘기기 &gt;</p>
@@ -802,8 +804,8 @@
       </header>
       <div class="story__status"><span>9:41</span><img src="../assets/story/icon-status-white.svg" width="74" height="13" alt=""></div>
       <div class="story__text">
-        <p class="story__title">밥은 <em>12그릇</em>을<br>먹였구만!</p>
-        <p class="story__sub">조금만 더 챙겨 주면 좋겠소</p>
+        <p class="story__title">밥은 <em>50그릇</em>을<br>먹였구만!</p>
+        <p class="story__sub">임금님 수라상이 따로 없구먼</p>
       </div>
       <p class="story__hint">화면을 눌러 넘기기 &gt;</p>
       <img class="story__char" src="../assets/story/bowl-character.gif" alt="밥을 먹는 덩찌">
@@ -1018,11 +1020,13 @@
   // 결과 데이터 (실제로는 분석 API 응답으로 교체)
   const RESULT = {
     title: '찾았다 자네의 덩찌!',
-    no: 'No.07',
+    no: 'No.01',
     name: '새벽을 여는<br>장원급제 선비',
     desc: '첫 닭이 울면 그대가 생각나는 구려..',
     image: '../assets/character-seonbi.png',
   };
+  // 한 줄 소개 2줄 예시 보기: ?line=2 (Figma 08결과_2줄 291:6062)
+  if (new URLSearchParams(location.search).get('line') === '2') RESULT.desc = '소박한 밥상이지만 학문만큼은\n소박하지 않았구려';
   const fmt = s => s.text ?? `${s.prefix ?? ''}${s.value}${s.suffix ?? ''}`;
 
   const CARD_W = 272, GAP = 17, STEP = CARD_W + GAP, SCREEN_W = 375;
@@ -1055,6 +1059,7 @@
         const body = tplResult.content.cloneNode(true);
         body.querySelector('[data-k="name"]').innerHTML = RESULT.name;
         body.querySelector('[data-k="desc"]').textContent = RESULT.desc;
+        if (RESULT.desc.includes('\n')) c.classList.add('is-2line');
         body.querySelector('[data-k="image"]').src = RESULT.image;
         body.querySelector('[data-k="no"]').textContent = RESULT.no;
         c.appendChild(body);
@@ -1264,8 +1269,8 @@
   // 실제 데이터: 이번 달 가장 많이 공부한 시간대. 미리보기는 주소 뒤에 ?time=afternoon 처럼 바꿔 볼 수 있다.
   const TIMES = {
     morning:   { word: '아침', sub: '일찍 일어나는 새가 벌레를 잡는다!',  bubble: '피곤하구려..' },
-    afternoon: { word: '오후', sub: '해가 중천에 떠도 붓은 멈추지 않는다', bubble: '한 장만 더 읽겠소' },
-    night:     { word: '밤',   sub: '낮에는 밭을 갈고 밤에는 글을 읽는다', bubble: '주경야독이라고 하지' },
+    afternoon: { word: '점심', sub: '해가 중천에 떠도 붓은 멈추지 않는다', bubble: '한 장만 더 읽겠소' },
+    night:     { word: '저녁', sub: '낮에는 밭을 갈고 밤에는 글을 읽는다', bubble: '주경야독이라고 하지' },
   };
   const timeKey = new URLSearchParams(location.search).get('time') || document.documentElement.dataset.time;
   const ACTIVE_TIME = TIMES[timeKey] ? timeKey : 'morning';
