@@ -1,17 +1,21 @@
-# 월간리포트 — 이번달 나의 덩찌 프로토타입
+# 월간리포트 — 이번달 나의 덩찌 프로토타입 (v2)
+
+> **v2 브랜치**: 개발·정책 이슈로 07 스켈레톤 · 08 결과 화면을 바꾼 버전 (Figma `282:5795`, `248:3194`).
+> 결과 카드에서 활동 타일 4개와 「전체 유저 중 8%」 문구를 빼고, 한 줄 소개를 카드 아래 타일로 옮김. 「종료하기」 추가.
+> 바로 보기: https://seundyuu.github.io/dungzzi-card-reveal/v2/ · 이전 버전(main): https://seundyuu.github.io/dungzzi-card-reveal/
 
 **바로 보기**
 
 | 페이지 | 링크 | 내용 |
 |---|---|---|
-| 전체 흐름 | https://seundyuu.github.io/dungzzi-card-reveal/ | 첫 진입 팝업 → 표지 → 주요 공부 시간 → 퀴즈 → 밥그릇 → 순위 → 셔플 → 결과 → 공유 → 마이페이지 |
-| 첫 진입 팝업 | https://seundyuu.github.io/dungzzi-card-reveal/popup.html | 홈 위 바텀시트만 (「실록 보러가기」는 표지로 이동) |
-| 표지 | https://seundyuu.github.io/dungzzi-card-reveal/cover.html | 표지부터 (「펼쳐보기」는 주요 공부 시간으로 이동) |
-| 주요 공부 시간 — 아침 | https://seundyuu.github.io/dungzzi-card-reveal/time-morning.html | 아침 버전 |
-| 주요 공부 시간 — 오후 | https://seundyuu.github.io/dungzzi-card-reveal/time-afternoon.html | 오후 버전 |
-| 주요 공부 시간 — 밤 | https://seundyuu.github.io/dungzzi-card-reveal/time-night.html | 밤 버전 |
-| 결과 | https://seundyuu.github.io/dungzzi-card-reveal/result.html | 셔플 없이 덩찌 결과 공개만 (「친구에게 공유하기」 → 공유 시트) |
-| 마이페이지 | https://seundyuu.github.io/dungzzi-card-reveal/mypage.html | 「우쑤한국사 12월 실록 보기」로 실록 다시 열기 |
+| 전체 흐름 | https://seundyuu.github.io/dungzzi-card-reveal/v2/ | 첫 진입 팝업 → 표지 → 주요 공부 시간 → 퀴즈 → 밥그릇 → 순위 → 셔플 → 결과 → 공유 → 마이페이지 |
+| 첫 진입 팝업 | https://seundyuu.github.io/dungzzi-card-reveal/v2/popup.html | 홈 위 바텀시트만 (「실록 보러가기」는 표지로 이동) |
+| 표지 | https://seundyuu.github.io/dungzzi-card-reveal/v2/cover.html | 표지부터 (「펼쳐보기」는 주요 공부 시간으로 이동) |
+| 주요 공부 시간 — 아침 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-morning.html | 아침 버전 |
+| 주요 공부 시간 — 오후 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-afternoon.html | 오후 버전 |
+| 주요 공부 시간 — 밤 | https://seundyuu.github.io/dungzzi-card-reveal/v2/time-night.html | 밤 버전 |
+| 결과 | https://seundyuu.github.io/dungzzi-card-reveal/v2/result.html | 셔플 없이 덩찌 결과 공개만 (「친구에게 공유하기」 → 공유 시트) |
+| 마이페이지 | https://seundyuu.github.io/dungzzi-card-reveal/v2/mypage.html | 「우쑤한국사 12월 실록 보기」로 실록 다시 열기 |
 
 첫 진입 팝업 → 표지 → 주요 공부 시간 → 카드 셔플 → 스켈레톤 → 덩찌 결과 공개까지 이어지는 인터랙션 프로토타입입니다. 「다시 재생」을 누르면 첫 진입 팝업부터 다시 시작합니다.
 
